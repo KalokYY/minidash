@@ -67,3 +67,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | re-read each AC and checked I could describe a test for it in one sentence |
 | What I changed and why | The AI applied the agreed fixes to the draft. The AI also picked three defaults I had not decided: (1) order of checks: invalid, too soon, too far, closed; (2) timestamps need a timezone offset and are treated as UTC, and restaurant hours are read as UTC time-of-day; (3) a time at or before now is SCHEDULE_INVALID. |
 | Outcome |  Accepted with changes. Committed as "Added requirements.md with 18 EARS criteria (AI-reviewed the draft)". |
+
+## Entry 6: Design: release mechanism decision, ADR and diagram
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 6 / Oct 28, 2026 |
+| Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
+| Slice | `docs/design.md` (outline, release-trigger ADR, Mermaid diagram) |
+| Prompt| Shared lecture slides (Modules 3-5) and asked for an outline of design.md. Wrote my own framing (context, goal, quality targets, constraints) for how scheduled orders get released. Asked what "one deployable" and "dependency rule" meant, whether APScheduler is easier, and what "release on read" means. Asked for the diagram and ADR to be drafted. |
+| What the AI produced | An outline of design.md, an explanation of the constraints, a comparison of three release options (release on read (Option A), background loop (Option B), APScheduler(Option C)) scored against my quality targets, a list of what could break first in the background loop, a Mermaid sequence diagram, a draft of ADR-001, and an assembled design.md with sections 1-2, 4-5 and 8 left as placeholders. |
+| What I verified | checked the options table against my requirements (AC-10 to AC-14) and User Story 3 |
+| What I changed and why | Chose option B (background loop), because the system acts on its own, and deleting the local `minidash.db` instead of writing a migration. The AI corrected my reasoning that B has fewer errors than A (it has more moving parts, and B is chosen because it fits User Story 3). |
+| Outcome | Accepted with edits to ADR-001. Committed as "Add design.md with diagram and ADR-001". |
