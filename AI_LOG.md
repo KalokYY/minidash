@@ -2,10 +2,7 @@
 
 Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled Orders)
 
-Each entry uses the template from Appendix B. Fields marked **[YOU FILL IN]** must be completed by me with what I actually did and checked.
-
 ---
-
 ## Entry 1: Understanding the assignment and planning
 
 | Field | Entry |
@@ -29,11 +26,32 @@ Each entry uses the template from Appendix B. Fields marked **[YOU FILL IN]** mu
 | Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
 | Slice | Baseline: generate the starter MiniDash app |
 | Prompt (verbatim or summarized) | Appendix C prompt, verbatim: "Create a small food-delivery REST API called MiniDash in Python with FastAPI and SQLite. Tables: restaurants (id, name, cuisine, opens_at, closes_at, avg_prep_minutes), menu_items (id, restaurant_id, name, price_cents), orders (id, restaurant_id, status, total_cents, address, created_at) and order_items. Endpoints: GET /restaurants, GET /restaurants/{id}/menu, POST /orders, GET /orders/{id}, PATCH /orders/{id}/status. Use a layered structure (routes, services, repository). Seed 5 restaurants. Add pytest tests for each endpoint and a README with run instructions. Do not add authentication or any dependency beyond fastapi, uvicorn, and pytest." |
-| What the AI produced | src |
-| What I verified | **[YOU FILL IN after generation]** Checklist: 5 endpoints exist; layered structure (routes, services, repository); only fastapi, uvicorn, pytest as dependencies (checked on pypi.org); 5 restaurants seeded; tests run and pass; app starts. Read every file. |
-| What I changed and why | **[YOU FILL IN after generation]** |
-| Outcome | **[YOU FILL IN after generation]** Accepted / modified / rejected. Commit message used. |
+| What the AI produced | A zip of 15 files, The AI could not install FastAPI or pytest in its own workspace (no access to PyPI), so it ran only a smoke test of the database, repository and service layers and a syntax check. It told me the routes, main.py and the pytest files were untested. |
+| What I verified | Ran pip install -r requirements.txt in a fresh virtual environment on my machine. Ran pytest: 15 passed, 1 warning. Started the app with uvicorn and opened /docs: all 5 endpoints are listed. |
+| What I changed and why | No code changes. Added minidash.db to .gitignore so the local database file is not committed. |
+| Outcome | Accepted with one small change (.gitignore). Committed as "Add AI-generated baseline (Appendix C prompt, Claude chat)". |
 
+## Entry 3: Environment setup help (virtual environment, activation, .gitignore)
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 3 / Oct 26, 2026 |
+| Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
+| Slice | Setup: running the baseline locally (no feature code) |
+| Prompt | Asked where and how to run the venv activation command in VS Code (PowerShell vs Command Prompt), what the `minidash.db` file warning meant, and how to add `minidash.db` to `.gitignore`. |
+| What the AI produced | Step-by-step instructions for creating and activating a virtual environment, installing requirements, running pytest and uvicorn, and editing `.gitignore`. |
+| What I verified | Followed the steps; the venv activated (prompt showed `(venv)`), tests passed, and the app started. |
+| What I changed and why | Nothing |
+| Outcome | Accepted. No code produced. |
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 4 / Oct 26, 2026 |
+| Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
+| Slice | Setup: AGENTS.md rules file |
+| Prompt | Asked what AGENTS.md is and how to create it. |
+| What the AI produced | An outline with project description, structure, and three suggested rules. |
+| What I verified | Checked the rules against the assignment’s setup checklist. |
+| What I changed and why | Nothing |
+| Outcome | Accepted. |
 ---
-
-<!-- Copy the table above for each new entry. Required: at least 8 entries total, including at least 2 where I rejected or substantially rewrote the AI output. -->
