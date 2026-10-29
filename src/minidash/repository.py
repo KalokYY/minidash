@@ -1,4 +1,4 @@
-"""Repository layer: the only place that talks SQL.
+"""Repository layer: the only place that talks database.
 
 Every function takes an open sqlite3 connection and returns plain dicts
 (or None when a row is missing). No business rules live here.

@@ -1,4 +1,4 @@
-"""SQLite connection helpers and schema."""
+"""the table definitions."""
 
 import os
 import sqlite3

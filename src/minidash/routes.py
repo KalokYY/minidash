@@ -1,4 +1,4 @@
-"""Routes layer: HTTP only. Parse requests, call a service, return JSON."""
+"""the five endpoints. This is where a request first arrives. """
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field

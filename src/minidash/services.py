@@ -1,4 +1,4 @@
-"""Service layer: business rules for menus and orders.
+"""the rules, like checking that the restaurant exists and computing the order total.
 
 Services know nothing about HTTP. They raise NotFoundError or
 InvalidRequestError and let the routes layer decide the status code.
