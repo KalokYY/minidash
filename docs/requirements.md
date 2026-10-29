@@ -40,12 +40,13 @@ Customers can place an order now for delivery at a later time. A scheduled order
 - **AC-14:** WHEN the release process runs and an order is CANCELLED, THE SYSTEM SHALL leave it CANCELLED and never release it.
 - **AC-15:** IF a customer attempts to cancel an order that is not in SCHEDULED status, THEN THE SYSTEM SHALL reject the request with error `ORDER_NOT_CANCELLABLE` and change nothing.
 - **AC-16:** IF a customer attempts to cancel an order that does not exist, THEN THE SYSTEM SHALL respond with 404 not found and change nothing.
+- **AC-17:** IF a caller attempts to change an order's status to or from SCHEDULED or CANCELLED through the status endpoint, THEN THE SYSTEM SHALL reject the request with error `STATUS_CHANGE_NOT_ALLOWED` and change nothing.
 
 ### Visibility
-- **AC-17:** WHEN a customer requests an order, THE SYSTEM SHALL include its `scheduled_delivery_time` in the response, or null if the order is not scheduled.
+- **AC-18:** WHEN a customer requests an order, THE SYSTEM SHALL include its `scheduled_delivery_time` in the response, or null if the order is not scheduled.
 
 ### Clock
-- **AC-18:** THE SYSTEM SHALL obtain the current time from an injected clock dependency rather than the wall clock, so that tests can control time.
+- **AC-19:** THE SYSTEM SHALL obtain the current time from an injected clock dependency rather than the wall clock, so that tests can control time.
 
 ## 4. Out of Scope
 - Payments and charging for scheduled orders.

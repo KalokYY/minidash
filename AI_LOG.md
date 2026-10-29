@@ -80,3 +80,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | checked the options table against my requirements (AC-10 to AC-14) and User Story 3 |
 | What I changed and why | Chose option B (background loop), because the system acts on its own, and deleting the local `minidash.db` instead of writing a migration. The AI corrected my reasoning that B has fewer errors than A (it has more moving parts, and B is chosen because it fits User Story 3). |
 | Outcome | Accepted with edits to ADR-001. Committed as "Added design.md". |
+
+**## Entry 7: Design: updating acceptance criteria references**
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 7 / Oct 29, 2026 |
+| Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
+| Slice | `docs/design.md` (acceptance criteria references, component table, error table, and PATCH restriction) |
+| Prompt | Asked Claude to review `design.md` after adding AC-17, which shifted the numbering of the visibility and clock requirements. Asked for help correcting the references, updating the component table, and checking the remaining issues. |
+| What the AI produced | A list of outdated acceptance criteria references and their corrections, an updated component table, suggestions for standardizing the error code table, and a final review identifying two references that still needed to be swapped. |
+| What I verified | Checked the acceptance criteria references against the updated requirements. Reviewed the component table to ensure the routes, services, database, main application, and clock components referenced the correct AC numbers. Rechecked the remaining references after Claude's review. |
+| What I changed and why | Updated the design references to account for AC-17 being the PATCH restriction, AC-18 being the visibility field, and AC-19 being the clock requirement. Updated the component table to reflect the new numbering and included the PATCH restriction in the services component. Also reviewed the error code naming for consistency. |
+| Outcome | Corrected the design document's acceptance criteria references and component traceability. Final commit and push still pending. |
