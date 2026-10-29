@@ -79,4 +79,4 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What the AI produced | An outline of design.md, an explanation of the constraints, a comparison of three release options (release on read (Option A), background loop (Option B), APScheduler(Option C)) scored against my quality targets, a list of what could break first in the background loop, a Mermaid sequence diagram, a draft of ADR-001, and an assembled design.md with sections 1-2, 4-5 and 8 left as placeholders. |
 | What I verified | checked the options table against my requirements (AC-10 to AC-14) and User Story 3 |
 | What I changed and why | Chose option B (background loop), because the system acts on its own, and deleting the local `minidash.db` instead of writing a migration. The AI corrected my reasoning that B has fewer errors than A (it has more moving parts, and B is chosen because it fits User Story 3). |
-| Outcome | Accepted with edits to ADR-001. Committed as "Add design.md with diagram and ADR-001". |
+| Outcome | Accepted with edits to ADR-001. Committed as "Added design.md". |
