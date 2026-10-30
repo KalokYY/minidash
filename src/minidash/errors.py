@@ -60,9 +60,18 @@ def restaurant_closed():
         422,
     )
 
+
 def order_not_cancellable():
     return ApiError(
         "ORDER_NOT_CANCELLABLE",
         "This order can no longer be cancelled: it has already been sent to the restaurant or was cancelled already.",
+        409,
+    )
+
+
+def status_change_not_allowed():
+    return ApiError(
+        "STATUS_CHANGE_NOT_ALLOWED",
+        "This status change isn't allowed. Use the cancel endpoint to cancel an order.",
         409,
     )

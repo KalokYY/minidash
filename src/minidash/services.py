@@ -15,12 +15,18 @@ from minidash.errors import (
     schedule_invalid,
     schedule_too_far,
     schedule_too_soon,
+    status_change_not_allowed,
 )
 
 MIN_SCHEDULE_LEAD = timedelta(minutes=45)
 MAX_SCHEDULE_LEAD = timedelta(days=7)
 
-VALID_STATUSES = ("PLACED", "PREPARING", "READY", "PICKED_UP", "DELIVERED", "CANCELLED")
+VALID_STATUSES = (
+    "SCHEDULED", "PLACED", "PREPARING", "READY", "PICKED_UP", "DELIVERED", "CANCELLED"
+)
+# These two statuses change only through the cancel endpoint and the release
+# process, never through the general status endpoint (AC-17).
+PROTECTED_STATUSES = ("SCHEDULED", "CANCELLED")
 
 
 # ---- menu -----------------------------------------------------------------
@@ -138,17 +144,22 @@ def get_order(conn, order_id):
 
 
 def update_status(conn, order_id, status):
-    """Set an order's status to any known status.
+    """Set an order's status, except to or from SCHEDULED or CANCELLED.
 
-    The baseline accepts any valid status value. Rules about which
-    transitions are allowed belong to a feature track, not the baseline.
+    Apart from that restriction (AC-17) the baseline behaviour is unchanged:
+    any known status may be set. A change to or from a protected status is
+    rejected and the order is left as it was.
     """
     if status not in VALID_STATUSES:
         raise InvalidRequestError(
             f"invalid status '{status}'; must be one of {', '.join(VALID_STATUSES)}"
         )
-    if not repository.update_order_status(conn, order_id, status):
+    order = repository.get_order(conn, order_id)
+    if order is None:
         raise NotFoundError(f"order {order_id} not found")
+    if status in PROTECTED_STATUSES or order["status"] in PROTECTED_STATUSES:
+        raise status_change_not_allowed()
+    repository.update_order_status(conn, order_id, status)
     return get_order(conn, order_id)
 
 

@@ -36,3 +36,25 @@ def client(tmp_path, clock):
 def first_restaurant_menu(client):
     """Menu items of restaurant 1, fetched through the API."""
     return client.get("/restaurants/1/menu").json()
+
+
+@pytest.fixture
+def place_order(client, first_restaurant_menu):
+    """Place an order at restaurant 1 through the API and return it.
+
+    Extra keyword arguments (for example scheduled_delivery_time) are added to
+    the request body.
+    """
+
+    def place(**extra):
+        body = {
+            "restaurant_id": 1,
+            "items": [{"menu_item_id": first_restaurant_menu[0]["id"], "quantity": 2}],
+            "address": "123 Main St",
+            **extra,
+        }
+        response = client.post("/orders", json=body)
+        assert response.status_code == 201
+        return response.json()
+
+    return place
