@@ -149,7 +149,7 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I changed and why | No change to the AI's code. I fixed my own incomplete file copy by extracting the full package again. I noted that the slice's "fixed text format" for stored times is deferred to Slice 4, where the value is written. |
 | Outcome | Accepted. |
 
-**## Entry 13: Implementing Slice 4 — Scheduled Order Creation**
+## Entry 13: Implementing Slice 4 — Scheduled Order Creation
 
 | Field | Entry |
 |---|---|
@@ -160,4 +160,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What the AI produced | Updated `routes.py` so POST `/orders` accepts an optional `scheduled_delivery_time` as a plain string and passes it to the service. Updated `services.py` to validate the requested time, set the order status to `SCHEDULED`, and store the time in UTC. Regular orders without a scheduled time remain `PLACED`. Added 15 new tests covering valid scheduled orders, time boundaries, UTC conversion, regular orders, invalid requests, validation priority, and unknown restaurants. `repository.py` was left unchanged because Slice 1 already supports saving the scheduled time. |
 | What I verified | The full test suite passed with 74 tests. Reviewed the changed files and checked the new tests. Also performed six mutation checks: changing the status to `PLACED`, skipping validation, storing the original timestamp instead of UTC, using a truthiness check, not saving the scheduled time, and making the route ignore the field. Each change caused at least one test to fail. |
 | What I changed and why | No manual code changes. Claude identified and corrected two issues in its first draft of the tests: one test did not actually include a scheduled time when checking an unknown restaurant, and a helper was imported from another test file. I also reviewed the known limitations: a scheduled order can still be changed through PATCH until Slices 6 and 7 add the status restrictions, and non-string timestamp input receives FastAPI's default 422 response rather than the custom `SCHEDULE_INVALID` response. |
-| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Commit and push status: [update after committing]. |
+| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Commited. |
+
+## Entry 14: Cancel scheduled orders (Slice 6 in `docs/tasks.md`)
+| Field | Entry |
+|---|---|
+| Entry # / date | 14 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 6: cancel scheduled orders (AC-13, AC-15, AC-16) |
+| Prompt | Asked Claude to read `AGENTS.md`, `requirements.md`, `design.md` and the code first, then implement cancellation: a cancel endpoint following `design.md`, SCHEDULED orders become CANCELLED, other statuses return `ORDER_NOT_CANCELLABLE`, a missing order returns 404, no other order data changes. Asked for focused tests, the full suite, mutation checks, no changes outside the slice, no commit or push, and no start on later slices. I called this "Slice 5" in the prompt; in `tasks.md` it is Slice 6, and Slice 5 (GET visibility tests) is still open. |
+| What the AI produced | `POST /orders/{id}/cancel` in `routes.py`; `cancel_order` in `services.py`; `order_not_cancellable()` (409) in `errors.py`; `transition_order_status` in `repository.py`, one `UPDATE … WHERE id = ? AND status = ?` that reports whether a row changed; 11 tests in `tests/test_cancel_order.py` and 2 in `tests/test_repository.py`. A missing order uses the existing 404 `{"detail"}` response, as decided when `ORDER_NOT_FOUND` was dropped. |
+| What I verified | Read the diff and ran the full suite: 87 passed. Claude ran eight deliberate breakages, each caught by tests (the SQL ignoring the current status, the SQL ignoring the order id, a missing commit, cancelling to the wrong status, cancelling PLACED instead of SCHEDULED, ignoring the rejection, no 404, 409 changed to 422). I repeated two myself: removing the "only if SCHEDULED" condition in `repository.py`, and changing the new status from `CANCELLED` to `PLACED` in `services.py`. Both made tests fail, and I undid them with `git restore` and confirmed 87 passed again. |
+| What I changed and why | No code changes. I kept the slice to Slice 6 as written in `tasks.md`. AC-14 (release never touches a cancelled order) is not tested here because the release function belongs to a later slice. |
+| Outcome | Accepted. Known limits: `PATCH /status` can still set CANCELLED until the status-guard slice, and there is no test with two truly simultaneous requests. |
