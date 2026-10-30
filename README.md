@@ -56,4 +56,4 @@ AI_LOG.md       record of AI assistance
 The project uses FastAPI, Uvicorn and pytest. `httpx` is also installed because FastAPI's `TestClient` cannot run without it and the endpoint tests use `TestClient`. It is needed only by the tests. It was checked on pypi.org, and removing it made `conftest.py` fail to load (see `AI_LOG.md`, Entry 8).
 
 ## AI use
-The baseline was generated with Claude using the Appendix C prompt. See `AI_LOG.md`.
+The baseline was generated with Claude and ChatGPT using the Appendix C prompt. See `AI_LOG.md`.
