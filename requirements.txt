@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 pytest
-# NOTE: httpx is NOT one of the three dependencies the assignment prompt allows.
+
 # FastAPI's TestClient needs it to run the endpoint tests. See README and AI_LOG.
+
 httpx

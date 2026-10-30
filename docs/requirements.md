@@ -7,7 +7,7 @@ Customers can place an order now for delivery at a later time. A scheduled order
 
 - "now" means the current time from the injected clock.
 - Timestamps must include a timezone offset and are compared as instants (UTC). Restaurant hours (`opens_at`, `closes_at`, `HH:MM` text) are interpreted as UTC time-of-day, which is a known simplification (see Out of Scope).
-- "The release process" is whatever mechanism moves due orders from SCHEDULED to PLACED. How it's  triggered is a design decision (see `design.md`).
+- "The release process" is whatever mechanism moves due orders from SCHEDULED to PLACED. How it's triggered is a design decision (see `design.md`).
 
 ## 2. User Stories
 - **User Story 1:** As a customer, I want to choose a future delivery time when placing an order, so that I can plan my meal around my schedule.
