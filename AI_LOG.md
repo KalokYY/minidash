@@ -121,5 +121,43 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | Prompt | Shared the assignment PDF, two earlier chat logs and the repo link, and asked for a full understanding of the requirements and my progress, then a plan. Afterwards asked Claude to fix the problems it listed before I continued. |
 | What the AI produced | A requirements-versus-progress review and a ranked problem list: error-handling infrastructure not scheduled in any slice, `ORDER_NOT_FOUND` in the error table with no matching criterion, `services.py` still calling `datetime.now()`, UTC normalisation needed before comparing times as text in SQL, no AC traceability in `tasks.md`, Entry 9 date and status wrong, `httpx` not justified, unpinned dependencies, Python version mismatch between `AGENTS.md` and the README. It then edited the docs and config files. |
 | What I verified | The AI ran the full test suite from a fresh clone (17 passed) and again with my exact pinned versions from `pip freeze` (17 passed). I re-checked its list against the repo and `requirements.md`, and checked that `opentelemetry-api` in my `pip freeze` is a dependency of FastAPI, not something I installed. |
-| What I changed and why | I made four decisions the AI asked me to make: drop the `ORDER_NOT_FOUND` row (AC-16 only requires a 404, and migrating baseline errors would enlarge the diff); state Python 3.12 in both `AGENTS.md` and the README; pin the four direct dependencies to the versions from my own `pip freeze`; and date Entry 9 as Oct 29 to match its commit. The three code items (error type, removing `datetime.now()`, UTC normalisation) were left to the slices that implement them instead of being patched now. |
+| What I changed and why | I made four decisions the AI asked me to make: drop the `ORDER_NOT_FOUND` row (AC-16 only requires a 404, and migrating baseline errors would enlarge the difference); state Python 3.12 in both `AGENTS.md` and the README; pin the four direct dependencies to the versions from my own `pip freeze`; and date Entry 9 as Oct 29 to match its commit. The three code items (error type, removing `datetime.now()`, UTC normalisation) were left to the slices that implement them instead of being patched now. |
 | Outcome | Accepted. Docs and config cleanup only; no behaviour changed. |
+
+## Entry 11: Implementing Slice 2 — Injected Clock
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 11 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 2: Injected Clock (AC-19) |
+| Prompt | Asked Claude to implement Slice 2 based on `docs/tasks.md` and `design.md`. |
+| What the AI produced | Added `clock.py` with `SystemClock`; added a `clock` argument to `create_app`; added a `get_clock` dependency in `routes.py`; changed `place_order` to require `now` as an argument; added a `FakeClock` and `clock` fixture in `conftest.py`; and added three clock tests and one `created_at` test. |
+| What I verified | Reviewed the differences and ran `pytest` (21 passed). Also performed mutation checks by putting `datetime.now()` back in `services.py` and making the route ignore the injected clock. |
+| What I changed and why | Nothing.|
+| Outcome | Accepted. All 21 tests passed. |
+
+## Entry 12: Slice 3 — error type and scheduling validation
+| Field | Entry |
+|---|---|
+| Entry # / date | 12 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repo access), Claude Sonnet 5.5 |
+| Slice | Slice 3: error type and scheduling validation (AC-3 to AC-7) |
+| Prompt | Pointed Claude at `requirements.md`, `design.md` and `AGENTS.md`. Required the AC-6 check order, opening hours read as UTC time-of-day, no new dependencies, and no changes outside Slice 3. Asked it to ask before going outside the slice. |
+| What the AI produced | `ApiError` plus four factory functions in `errors.py`, an `ApiError` handler in `main.py`, `validate_scheduled_delivery` in `services.py`, and 38 new tests (boundaries, invalid inputs, UTC normalisation, opening hours, check priority, error response shape). |
+| What I verified | Read the diff. My first `pytest` run had 37 failures (22 passed): the new test files and `errors.py` were in place, but `services.py` and `main.py` had not been updated, so the tests could not find `validate_scheduled_delivery` and the `ApiError` handler. After extracting the package over the repo, `pytest` gave 59 passed. Claude also ran ten deliberate breakages of the rules (for example 45 minutes changed to 44, "at or before now" weakened to "before now", `closes_at` made exclusive, skipping the UTC conversion, running the closed check first), and each made at least one test fail. |
+| What I changed and why | No change to the AI's code. I fixed my own incomplete file copy by extracting the full package again. I noted that the slice's "fixed text format" for stored times is deferred to Slice 4, where the value is written. |
+| Outcome | Accepted. |
+
+**## Entry 13: Implementing Slice 4 — Scheduled Order Creation**
+
+| Field | Entry |
+|---|---|
+| Entry # / date | 13 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 4: Accept scheduled delivery time through POST `/orders` (AC-1 to AC-9) |
+| Prompt | Asked Claude to implement Slice 4 based on `docs/tasks.md`, `design.md`, and the existing requirements. Asked it to keep the request field name `scheduled_delivery_time`, follow the existing UTC conventions, and limit changes to this slice. |
+| What the AI produced | Updated `routes.py` so POST `/orders` accepts an optional `scheduled_delivery_time` as a plain string and passes it to the service. Updated `services.py` to validate the requested time, set the order status to `SCHEDULED`, and store the time in UTC. Regular orders without a scheduled time remain `PLACED`. Added 15 new tests covering valid scheduled orders, time boundaries, UTC conversion, regular orders, invalid requests, validation priority, and unknown restaurants. `repository.py` was left unchanged because Slice 1 already supports saving the scheduled time. |
+| What I verified | The full test suite passed with 74 tests. Reviewed the changed files and checked the new tests. Also performed six mutation checks: changing the status to `PLACED`, skipping validation, storing the original timestamp instead of UTC, using a truthiness check, not saving the scheduled time, and making the route ignore the field. Each change caused at least one test to fail. |
+| What I changed and why | No manual code changes. Claude identified and corrected two issues in its first draft of the tests: one test did not actually include a scheduled time when checking an unknown restaurant, and a helper was imported from another test file. I also reviewed the known limitations: a scheduled order can still be changed through PATCH until Slices 6 and 7 add the status restrictions, and non-string timestamp input receives FastAPI's default 422 response rather than the custom `SCHEDULE_INVALID` response. |
+| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Commit and push status: [update after committing]. |
