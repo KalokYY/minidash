@@ -1,5 +1,5 @@
 # MiniDash
-A small food-delivery REST API built with Python, FastAPI and SQLite.
+A small food-delivery REST API built with Python, FastAPI and SQLite, with a simple customer web page on top of it.
 Customers can browse restaurants, place orders and track their status. MiniDash also supports **scheduled orders**: a customer can order now for delivery later (between 45 minutes and 7 days ahead). A scheduled order is held until 30 minutes before delivery, then released to the restaurant automatically, and the customer can cancel it any time before that.
 
 Layered structure: **routes** (HTTP) -> **services** (business rules) -> **repository** (SQL) -> **SQLite**.
@@ -22,11 +22,27 @@ pip install -r requirements.txt
 uvicorn minidash.main:create_app --factory --app-dir src --reload
 ```
 
-Open http://127.0.0.1:8000/docs for interactive API docs (you can try every endpoint there with the "Try it out" button).
+Open http://127.0.0.1:8000/ for the customer web page, and http://127.0.0.1:8000/docs for the interactive API docs (you can try every endpoint there with the "Try it out" button).
 The database file `minidash.db` is created and seeded with 5 restaurants on first start.
 Set the `MINIDASH_DB` environment variable to use a different database file.
 
 The background job that releases scheduled orders starts and stops together with the app, so there is nothing extra to run. **Run the app with a single worker** (do not use `--workers` with a number above 1); see [Implementation notes](#implementation-notes).
+
+## Web page for customers
+Open http://127.0.0.1:8000/ to use MiniDash like a delivery app:
+
+1. **Browse** the restaurants and filter by cuisine. Each card says whether the restaurant is open now.
+2. **Add items** from a menu with the + buttons. A "View cart" bar shows your count and total.
+3. **Choose when.** In the cart, pick **Deliver now** or **Schedule**. Scheduling shows a date and time picker and quick choices (in 1 hour, tomorrow at 12:00 or 18:00).
+4. **Place the order.** You land on an order screen with its status, delivery time, items and total.
+5. **Follow it.** The order screen checks for updates every 3 seconds, so a scheduled order changes to "Order sent to the restaurant" by itself when it is released. A scheduled order has a **Cancel order** button until then.
+
+How it relates to the API:
+- The page only uses the endpoints listed above (`/restaurants`, `/restaurants/{id}/menu`, `/orders`, `/orders/{id}`, `/orders/{id}/cancel`). It adds no API of its own, and all rules (the 45-minute to 7-day window, opening hours, release, cancel) are still enforced by the server. If the server rejects a time, the page shows the server's message in the cart.
+- **Time zones.** You pick the delivery time in your own time zone. The page converts it to UTC before sending it (`toISOString()`), and shows times back in your own time zone. Restaurant hours are UTC, so the page shows them in both.
+- **Recent orders** are remembered in your own browser (local storage), because there are no accounts and no endpoint that lists orders. Clearing browser data forgets them.
+- The page is plain HTML, CSS and JavaScript in `src/minidash/static/`, served by `src/minidash/web.py`. It needs no extra packages and no build step. Text from the server or from a customer is always inserted as plain text, never as HTML.
+- **How it was checked.** `tests/test_web_ui.py` checks that the page and its files are served, that every API path and field the page uses really exists in the API, that local times are sent with a timezone, and that the page never builds HTML from text. How the page behaves in a browser (adding items, scheduling, cancelling, errors, automatic release, a phone-sized screen) was checked by clicking through it in a browser, not by automated browser tests in this repository.
 
 ## Run the tests
 ```bash
@@ -185,7 +201,8 @@ An unknown order is still a `404`, and an unrecognised status value (for example
 src/minidash/   app code
                 routes.py (HTTP), services.py (business rules), repository.py (SQL),
                 db.py (tables), seed.py (sample data), clock.py (the clock),
-                errors.py (error types), main.py (app setup and release loop)
+                errors.py (error types), main.py (app setup and release loop),
+                web.py and static/ (the customer web page), docs_page.py (look of /docs)
 tests/          pytest tests, one file per area (orders, scheduling, cancel,
                 status protection, release, release loop, order visibility, ...)
 docs/           spec package: requirements.md, design.md, tasks.md

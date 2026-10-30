@@ -160,7 +160,7 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What the AI produced | Updated `routes.py` so POST `/orders` accepts an optional `scheduled_delivery_time` as a plain string and passes it to the service. Updated `services.py` to validate the requested time, set the order status to `SCHEDULED`, and store the time in UTC. Regular orders without a scheduled time remain `PLACED`. Added 15 new tests covering valid scheduled orders, time boundaries, UTC conversion, regular orders, invalid requests, validation priority, and unknown restaurants. `repository.py` was left unchanged because Slice 1 already supports saving the scheduled time. |
 | What I verified | The full test suite passed with 74 tests. Reviewed the changed files and checked the new tests. Also performed six mutation checks: changing the status to `PLACED`, skipping validation, storing the original timestamp instead of UTC, using a truthiness check, not saving the scheduled time, and making the route ignore the field. Each change caused at least one test to fail. |
 | What I changed and why | No manual code changes. Claude identified and corrected two issues in its first draft of the tests: one test did not actually include a scheduled time when checking an unknown restaurant, and a helper was imported from another test file. I also reviewed the known limitations: a scheduled order can still be changed through PATCH until Slices 6 and 7 add the status restrictions, and non-string timestamp input receives FastAPI's default 422 response rather than the custom `SCHEDULE_INVALID` response. |
-| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Commited. |
+| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Committed. |
 
 ## Entry 14: Cancel scheduled orders (Slice 6 in `docs/tasks.md`)
 | Field | Entry |
@@ -198,7 +198,7 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What AI produced | Added `list_scheduled_orders()` in `repository.py` to retrieve scheduled orders with a delivery time. Added `RELEASE_LEAD` and `release_due_orders(conn, now)` in `services.py`. Added 10 tests in `tests/test_release.py` and one repository test in `tests/test_repository.py`. The release function changes due orders from SCHEDULED to PLACED using the existing conditional status update. |
 | What I verified | Extracted the updated files into the project and ran the full test suite myself: 124 passed, 0 failed. Claude also performed nine mutation checks, and each was caught by the tests. I performed an additional mutation check myself by changing the release threshold from 30 minutes to 29 minutes in `services.py`. This caused 3 tests to fail, as expected (3 failed, 121 passed). I restored the original 30-minute threshold and reran the full test suite. |
 | What changed | No manual code changes. The implementation checks whether an order has reached its release time (30 minutes before delivery) and only updates orders that are still SCHEDULED. The conditional repository update prevents cancelled or already-transitioned orders from being released. |
-| Outcome | Accepted for review. All 124 tests passed. Slice 8 is implemented locally Commited. |
+| Outcome | Accepted for review. All 124 tests passed. Slice 8 is implemented locally Committed. |
 
 ## Entry 17: Implementing Slice 9 — Background Release Loop and Integration Test
 
@@ -211,7 +211,7 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What AI produced | Added the background release loop in `main.py` and connected it to the application lifespan. Added a configurable `release_interval_seconds` argument, defaulting to 30 seconds, with `None` to disable the loop. Updated the `client` fixture in `tests/conftest.py` to disable the loop during regular tests. Added eight tests in `tests/test_release_loop.py` covering the loop, integration, lifecycle, and error handling. |
 | What I verified | Extracted the updated files and ran the full test suite myself: 132 passed, 0 failed. Claude also performed seven mutation checks, and each was caught by the tests. I performed an additional mutation check myself in `src/minidash/main.py` by changing `RELEASE_INTERVAL_SECONDS` from 30 to 60. The test `test_loop_runs_every_30_seconds_by_default` failed as expected (1 failed, 131 passed), detecting the incorrect interval. I restored the original 30-second interval and reran the full test suite: 132 passed, 0 failed. |
 | What changed | No manual code changes. The background loop now calls the existing `release_due_orders` function using the injected clock. It starts with the application and stops during shutdown. The loop uses a separate database connection and runs independently of regular API requests. |
-| Outcome | Accepted. All 132 tests passed. Claude also repeated the full test suite five times and the loop tests ten times without failures. Commited |
+| Outcome | Accepted. All 132 tests passed. Claude also repeated the full test suite five times and the loop tests ten times without failures. Committed |
 
 ## Entry 18: Implementing Slice 5 — GET Visibility Tests
 
@@ -225,3 +225,39 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | Ran the new test file and confirmed that all six tests passed. I then performed a mutation test by temporarily adding `order.pop("scheduled_delivery_time")` to the GET route. All six tests failed as expected, confirming that the tests detect when the field is missing from the response. |
 | What changed | Added `tests/test_order_visibility.py`. No manual application code changes were made. The tests explicitly verify the GET response fields and ensure that `scheduled_delivery_time` is included, including when its value is `null`. |
 | Outcome | Accepted. The mutation test caused all six new tests to fail as expected. Restored the original GET route. Full test suite: 138 passed, 0 failed. |
+
+## Entry 19: Runnable examples and sections for the API docs page
+| Field | Entry |
+|---|---|
+| Entry # / date | 19 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Optional polish: pre-filled example requests and endpoint sections on `/docs` (no change to the API) |
+| Prompt | Asked how to make the generated API docs page look better. Chose the small option: pre-filled example request bodies that work when run unchanged, plus a title, description and grouped sections. |
+| What the AI produced | A title, description and "Restaurants" and "Orders" sections; endpoint summaries and descriptions in `routes.py`; example bodies for `POST /orders` and `PATCH /orders/{id}/status`, built in `main.py` from the injected clock (tomorrow at 18:00 UTC) so they stay inside the 45-minute to 7-day window; 7 tests in `tests/test_docs_examples.py` that post the examples unchanged. |
+| What I verified | Reviewed the diff and ran the full suite: 145 passed. Claude ran five deliberate breakages (for example an example 10 days out, or an unknown restaurant), each caught by tests, and checked the examples against a real running server. |
+| What I changed and why | No code changes. I chose the small option because the required work was still open and the assignment treats a front-end as an optional stretch goal. |
+| Outcome | Accepted. Committed |
+
+## Entry 20: Final README and design.md update
+| Field | Entry |
+|---|---|
+| Entry # / date | 21 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Documentation: `README.md` and `docs/design.md` updated to match the final code |
+| Prompt | Asked Claude to document the finished feature in the README using the real implementation and tests, then to update `design.md` so the components, interfaces, diagram, ADR and risks match the code. |
+| What the AI produced | A README with setup, the scheduled-order endpoints, request and response examples captured from the running code, status rules and implementation notes. An updated `design.md` with the real function names, a new sequence diagram checked in the Mermaid renderer, an "Update after implementation" note on ADR-001, and a limitations section. |
+| What I verified | Read both documents against the code. Claude checked that every AC number is between 1 and 19, every function and error name exists in `src/`, and the README's curl example works against a running server. |
+| What I changed and why | Nothing |
+| Outcome | Accepted. Committed |
+
+## Entry 21: Customer web page (optional stretch goal)
+| Field | Entry |
+|---|---|
+| Entry # / date | 21 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Optional stretch goal: a customer-facing web page served by the app (no change to the API) |
+| Prompt | Asked for a DoorDash or Uber Eats style page where a customer can browse restaurants, add items to a cart and schedule an order, instead of using the API docs page. Chose to finish the required slices first. Later asked for an address popup, then told Claude to scrap it. |
+| What the AI produced | `src/minidash/web.py` (serves the page at `/`) and `src/minidash/static/index.html`, `app.css` and `app.js`: restaurant list, menus, cart, a Deliver now or Schedule choice with a date and time picker, an order status screen that refreshes itself, and a cancel button for scheduled orders. Text from the server is added to the page as plain text, never as HTML. Also 7 tests in `tests/test_web_ui.py` and README and `design.md` updates. The existing API was not changed. |
+| What I verified | Ran the full suite (157 passed) and used the page in my browser: restaurants, menu, cart, scheduling an order and cancelling it. Claude also ran the whole customer journey in a real browser against a fake server clock (scheduling, automatic release, cancel, error messages, a phone-sized screen). That run found three bugs in the AI's own code, which it fixed before I used the page: the cart printed `[object HTMLDivElement]`, the top bar overflowed on a phone, and the "View cart" bar showed on an empty cart. |
+| What I changed and why | No changes to the AI's code. I fixed my own setup problems: my first copy of the files was incomplete (a missing `web.py`, `docs_page.py` and `index.html` gave a 404, and a file saved as `index (1).html` gave a 500 error until I renamed it), and my old `minidash.db` had no `scheduled_delivery_time` column, so I deleted it and restarted (the no-migration decision from Entry 6). |
+| Outcome | Accepted |

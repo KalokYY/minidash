@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MiniDash: food delivery</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#/">Mini<span>Dash</span></a>
+    <label class="address-box">
+      <span aria-hidden="true">📍</span>
+      <input id="address" type="text" placeholder="Delivery address" autocomplete="street-address" aria-label="Delivery address">
+    </label>
+    <button id="cart-button" class="pill dark" type="button" aria-label="Open cart">🛒 <span id="cart-count">0</span></button>
+  </header>
+
+  <main id="app"></main>
+
+  <div id="scrim" hidden></div>
+  <aside id="cart" class="drawer" hidden aria-label="Your cart"></aside>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">MiniDash · <a href="/docs">API docs</a></footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

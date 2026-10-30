@@ -16,8 +16,10 @@ from fastapi.responses import JSONResponse
 from minidash import services
 from minidash.clock import SystemClock
 from minidash.db import DEFAULT_DB_PATH, connect, init_db
+from minidash.docs_page import docs_page
 from minidash.errors import ApiError, InvalidRequestError, NotFoundError
 from minidash.routes import router
+from minidash.web import add_web_ui
 
 RELEASE_INTERVAL_SECONDS = 30
 
@@ -114,11 +116,14 @@ def create_app(db_path=None, clock=None, release_interval_seconds=RELEASE_INTERV
         title="MiniDash",
         description=DOCS_DESCRIPTION,
         openapi_tags=DOCS_TAGS,
+        docs_url=None,  # served by docs_page below, with our own look
         lifespan=lifespan,
     )
     app.state.db_path = db_path
     app.state.clock = clock or SystemClock()
     app.include_router(router)
+    app.add_api_route("/docs", docs_page, include_in_schema=False)
+    add_web_ui(app)
     _add_runnable_examples(app)
 
     @app.exception_handler(ApiError)
