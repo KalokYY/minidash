@@ -199,3 +199,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | Extracted the updated files into the project and ran the full test suite myself: 124 passed, 0 failed. Claude also performed nine mutation checks, and each was caught by the tests. I performed an additional mutation check myself by changing the release threshold from 30 minutes to 29 minutes in `services.py`. This caused 3 tests to fail, as expected (3 failed, 121 passed). I restored the original 30-minute threshold and reran the full test suite. |
 | What changed | No manual code changes. The implementation checks whether an order has reached its release time (30 minutes before delivery) and only updates orders that are still SCHEDULED. The conditional repository update prevents cancelled or already-transitioned orders from being released. |
 | Outcome | Accepted for review. All 124 tests passed. Slice 8 is implemented locally Commited. |
+
+## Entry 17: Implementing Slice 9 — Background Release Loop and Integration Test
+
+| Field | Entry |
+|---|---|
+| Date | October 30, 2026 |
+| Tool | Claude agent session, Sonnet 5.5 |
+| Task | Implement Slice 9 from `docs/tasks.md`: add the background release loop and integration test for scheduled orders (AC-10, AC-11, AC-12, AC-14, AC-19). |
+| Prompt | Asked Claude to implement the background release loop according to the requirements and design documents, reuse the existing Slice 8 release function, handle application startup and shutdown, add integration tests, and verify the implementation without making unrelated changes. |
+| What AI produced | Added the background release loop in `main.py` and connected it to the application lifespan. Added a configurable `release_interval_seconds` argument, defaulting to 30 seconds, with `None` to disable the loop. Updated the `client` fixture in `tests/conftest.py` to disable the loop during regular tests. Added eight tests in `tests/test_release_loop.py` covering the loop, integration, lifecycle, and error handling. |
+| What I verified | Extracted the updated files and ran the full test suite myself: 132 passed, 0 failed. Claude also performed seven mutation checks, and each was caught by the tests. I performed an additional mutation check myself in `src/minidash/main.py` by changing `RELEASE_INTERVAL_SECONDS` from 30 to 60. The test `test_loop_runs_every_30_seconds_by_default` failed as expected (1 failed, 131 passed), detecting the incorrect interval. I restored the original 30-second interval and reran the full test suite: 132 passed, 0 failed. |
+| What changed | No manual code changes. The background loop now calls the existing `release_due_orders` function using the injected clock. It starts with the application and stops during shutdown. The loop uses a separate database connection and runs independently of regular API requests. |
+| Outcome | Accepted. All 132 tests passed. Claude also repeated the full test suite five times and the loop tests ten times without failures. Commited |

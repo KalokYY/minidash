@@ -28,7 +28,7 @@ def clock():
 @pytest.fixture
 def client(tmp_path, clock):
     """A client backed by a fresh, seeded database file and a fake clock."""
-    app = create_app(str(tmp_path / "test.db"), clock=clock)
+    app = create_app(str(tmp_path / "test.db"), clock=clock, release_interval_seconds=None)
     return TestClient(app)
 
 
