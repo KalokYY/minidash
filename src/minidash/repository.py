@@ -92,3 +92,18 @@ def update_order_status(conn, order_id, status):
     cur = conn.execute("UPDATE orders SET status = ? WHERE id = ?", (status, order_id))
     conn.commit()
     return cur.rowcount > 0
+
+
+def transition_order_status(conn, order_id, expected_status, new_status):
+    """Change the status only if the order is currently `expected_status`.
+
+    This is a single conditional UPDATE, so if two callers race, only one
+    matches the row. Return True if the order was changed, False if not
+    (the order is missing or already has a different status).
+    """
+    cur = conn.execute(
+        "UPDATE orders SET status = ? WHERE id = ? AND status = ?",
+        (new_status, order_id, expected_status),
+    )
+    conn.commit()
+    return cur.rowcount > 0

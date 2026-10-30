@@ -59,3 +59,10 @@ def restaurant_closed():
         "The restaurant is closed at that time. Please pick a time during its opening hours.",
         422,
     )
+
+def order_not_cancellable():
+    return ApiError(
+        "ORDER_NOT_CANCELLABLE",
+        "This order can no longer be cancelled: it has already been sent to the restaurant or was cancelled already.",
+        409,
+    )

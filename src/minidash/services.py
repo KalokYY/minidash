@@ -10,6 +10,7 @@ from minidash import repository
 from minidash.errors import (
     InvalidRequestError,
     NotFoundError,
+    order_not_cancellable,
     restaurant_closed,
     schedule_invalid,
     schedule_too_far,
@@ -148,4 +149,17 @@ def update_status(conn, order_id, status):
         )
     if not repository.update_order_status(conn, order_id, status):
         raise NotFoundError(f"order {order_id} not found")
+    return get_order(conn, order_id)
+
+
+def cancel_order(conn, order_id):
+    """Cancel an order that is still SCHEDULED (AC-13, AC-15, AC-16).
+
+    A missing order is a 404. Any order that is not SCHEDULED (already sent to
+    the restaurant, or already cancelled) is rejected and left untouched.
+    """
+    if repository.get_order(conn, order_id) is None:
+        raise NotFoundError(f"order {order_id} not found")
+    if not repository.transition_order_status(conn, order_id, "SCHEDULED", "CANCELLED"):
+        raise order_not_cancellable()
     return get_order(conn, order_id)
