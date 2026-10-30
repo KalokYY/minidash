@@ -212,3 +212,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | Extracted the updated files and ran the full test suite myself: 132 passed, 0 failed. Claude also performed seven mutation checks, and each was caught by the tests. I performed an additional mutation check myself in `src/minidash/main.py` by changing `RELEASE_INTERVAL_SECONDS` from 30 to 60. The test `test_loop_runs_every_30_seconds_by_default` failed as expected (1 failed, 131 passed), detecting the incorrect interval. I restored the original 30-second interval and reran the full test suite: 132 passed, 0 failed. |
 | What changed | No manual code changes. The background loop now calls the existing `release_due_orders` function using the injected clock. It starts with the application and stops during shutdown. The loop uses a separate database connection and runs independently of regular API requests. |
 | Outcome | Accepted. All 132 tests passed. Claude also repeated the full test suite five times and the loop tests ten times without failures. Commited |
+
+## Entry 18: Implementing Slice 5 — GET Visibility Tests
+
+| Field | Entry |
+|---|---|
+| Date | October 30, 2026 |
+| Tool | Claude agent session, Sonnet 5.5 |
+| Task | Complete Slice 5 from `docs/tasks.md`: add dedicated GET visibility tests for scheduled orders and regular orders (AC-18). |
+| Prompt | Asked Claude to inspect the existing GET endpoint and tests, identify missing coverage for AC-18, add focused tests where needed, and avoid changing application code or unrelated files. |
+| What AI produced | Added a new test file, `tests/test_order_visibility.py`, containing six tests covering the scheduled delivery time in GET responses, UTC normalization, regular orders returning `null`, cancelled scheduled orders retaining their scheduled time, and the full response structure for scheduled and regular orders. No application code was changed. |
+| What I verified | Ran the new test file and confirmed that all six tests passed. I then performed a mutation test by temporarily adding `order.pop("scheduled_delivery_time")` to the GET route. All six tests failed as expected, confirming that the tests detect when the field is missing from the response. |
+| What changed | Added `tests/test_order_visibility.py`. No manual application code changes were made. The tests explicitly verify the GET response fields and ensure that `scheduled_delivery_time` is included, including when its value is `null`. |
+| Outcome | Accepted. The mutation test caused all six new tests to fail as expected. Restored the original GET route. Full test suite: 138 passed, 0 failed. |
