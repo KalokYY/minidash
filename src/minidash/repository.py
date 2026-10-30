@@ -31,16 +31,27 @@ def list_menu_items(conn, restaurant_id):
     return [dict(r) for r in rows]
 
 
-def insert_order(conn, restaurant_id, status, total_cents, address, created_at, lines):
+def insert_order(
+    conn, restaurant_id, status, total_cents, address,
+    created_at, lines, scheduled_delivery_time=None
+):
     """Insert an order and its items in one transaction; return the new order id.
 
     `lines` is a list of dicts with menu_item_id, quantity, unit_price_cents.
     """
     try:
         cur = conn.execute(
-            "INSERT INTO orders (restaurant_id, status, total_cents, address, created_at) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (restaurant_id, status, total_cents, address, created_at),
+            "INSERT INTO orders (restaurant_id, status, total_cents, address, "
+            "created_at, scheduled_delivery_time) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                restaurant_id,
+                status,
+                total_cents,
+                address,
+                created_at,
+                scheduled_delivery_time,
+            ),
         )
         order_id = cur.lastrowid
         conn.executemany(
@@ -57,15 +68,14 @@ def insert_order(conn, restaurant_id, status, total_cents, address, created_at, 
         conn.rollback()
         raise
 
-
 def get_order(conn, order_id):
     row = conn.execute(
-        "SELECT id, restaurant_id, status, total_cents, address, created_at "
+        "SELECT id, restaurant_id, status, total_cents, address, created_at, "
+        "scheduled_delivery_time "
         "FROM orders WHERE id = ?",
         (order_id,),
     ).fetchone()
     return dict(row) if row else None
-
 
 def list_order_items(conn, order_id):
     rows = conn.execute(

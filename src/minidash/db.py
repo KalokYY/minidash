@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS orders (
     status         TEXT NOT NULL,
     total_cents    INTEGER NOT NULL,
     address        TEXT NOT NULL,
-    created_at     TEXT NOT NULL       -- ISO 8601, UTC
+    created_at     TEXT NOT NULL,
+    scheduled_delivery_time TEXT     -- ISO 8601, UTC; NULL for regular orders (Regular orders don't have a scheduled delivery time, so their value will be NULL)
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
