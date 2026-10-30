@@ -1,13 +1,34 @@
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from fastapi.testclient import TestClient
 
 from minidash.main import create_app
 
 
+class FakeClock:
+    """A clock whose "now" only changes when the test says so."""
+
+    def __init__(self, start):
+        self._now = start
+
+    def now(self):
+        return self._now
+
+    def advance(self, **kwargs):
+        """Move time forward, e.g. clock.advance(minutes=45)."""
+        self._now += timedelta(**kwargs)
+
+
 @pytest.fixture
-def client(tmp_path):
-    """A client backed by a fresh, seeded database file for every test."""
-    app = create_app(str(tmp_path / "test.db"))
+def clock():
+    return FakeClock(datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc))
+
+
+@pytest.fixture
+def client(tmp_path, clock):
+    """A client backed by a fresh, seeded database file and a fake clock."""
+    app = create_app(str(tmp_path / "test.db"), clock=clock)
     return TestClient(app)
 
 

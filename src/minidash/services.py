@@ -4,8 +4,6 @@ Services know nothing about HTTP. They raise NotFoundError or
 InvalidRequestError and let the routes layer decide the status code.
 """
 
-from datetime import datetime, timezone
-
 from minidash import repository
 from minidash.errors import InvalidRequestError, NotFoundError
 
@@ -26,11 +24,12 @@ def get_menu(conn, restaurant_id):
 
 # ---- ordering -------------------------------------------------------------
 
-def place_order(conn, restaurant_id, items, address, now=None):
+def place_order(conn, restaurant_id, items, address, now):
     """Create an order with status PLACED.
 
     `items` is a list of dicts: {"menu_item_id": int, "quantity": int}.
-    `now` can be passed in (a datetime) so callers and tests control the time.
+    `now` is the current time (a timezone-aware datetime) supplied by the caller
+    from the injected clock; this function never reads the wall clock.
     """
     if repository.get_restaurant(conn, restaurant_id) is None:
         raise NotFoundError(f"restaurant {restaurant_id} not found")
@@ -59,7 +58,7 @@ def place_order(conn, restaurant_id, items, address, now=None):
         )
         total_cents += menu_item["price_cents"] * item["quantity"]
 
-    created_at = (now or datetime.now(timezone.utc)).isoformat()
+    created_at = now.isoformat()
     order_id = repository.insert_order(
         conn, restaurant_id, "PLACED", total_cents, address.strip(), created_at, lines
     )

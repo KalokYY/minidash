@@ -12,7 +12,7 @@ This feature lets a customer schedule an order for delivery between 45 minutes a
 | db.py | Adds the scheduled_delivery_time column to the orders table | AC-8, AC-18 |
 | main.py | Starts and stops the release loop and passes in the injected clock | AC-10 to 12, AC-19 |
 | clock.py | A small Clock object so tests can set "now" | AC-19 |
-| errors.py | An error type that carries a code, a message and an HTTP status, plus handlers that return the {"code", "message"} body | AC-3 to 7, AC-15, AC-16, AC-17 |
+| errors.py | An error type that carries a code, a message and an HTTP status, plus handlers that return the {"code", "message"} body | AC-3 to 7, AC-15, AC-17 |
 
 ## 3. Data Changes
 - New column on `orders`: scheduled_delivery_time, stored as text in ISO 8601 UTC like created_at. It can be empty because normal (non-scheduled) orders have no future delivery time and must keep the baseline behaviour of going straight to PLACED (AC-9, AC-18).
@@ -23,11 +23,10 @@ This feature lets a customer schedule an order for delivery between 45 minutes a
 - POST /orders: accepts an optional scheduled_delivery_time, an ISO 8601 string with a timezone offset. It is declared as a plain string, not a date type, because FastAPI would parse and reject a bad date on its own with its own error shape, so my SCHEDULE_INVALID (AC-3) could never surface. I need to validate the string myself and return my own error body.
 - Cancel: POST /orders/{id}/cancel, because reusing PATCH /orders/{id}/status would let a caller set any status (e.g. force a CANCELLED order back to PLACED, or release an order that must never be released). A dedicated endpoint keeps the "only if currently SCHEDULED, never released afterwards" rule in one place (AC-13 to 16).
 - Release trigger: a background loop inside the app (see ADR-001).
-- Error responses: the body is `{"code": "...", "message": "..."}`.
+- Error responses: new scheduling and cancel errors use the body `{"code": "...", "message": "..."}`. Baseline errors (including the 404 for an unknown order, AC-16) keep their existing `{"detail": ...}` body.
 
 | Error code | HTTP status | Message shown to the customer |
 |---|---|---|
-| ORDER_NOT_FOUND | 404 | We couldn't find that order. |
 | STATUS_CHANGE_NOT_ALLOWED | 409 | This status change isn't allowed. Use the cancel endpoint to cancel an order. |
 | SCHEDULE_INVALID | 422 | That delivery time isn't valid. Please send a date and time with a timezone. |
 | SCHEDULE_TOO_SOON | 422 | Scheduled delivery must be at least 45 minutes from now. |

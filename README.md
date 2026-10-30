@@ -3,7 +3,7 @@ A small food-delivery REST API built with Python, FastAPI and SQLite.
 Layered structure: **routes** (HTTP) -> **services** (business rules) -> **repository** (SQL) -> **SQLite**.
 
 ## Prerequisites
-- Python 3.10 or newer
+- Python 3.12 or newer
 
 ## Setup
 ```bash
@@ -53,9 +53,7 @@ AI_LOG.md       record of AI assistance
 ```
 
 ## Dependencies
-The project uses FastAPI, Uvicorn, and pytest. The endpoint tests use FastAPI's TestClient, which currently requires httpx in this environment.
-
-The assignment restricts additional dependencies, so the use of httpx needs to be confirmed before submission. Once the dependency decision is finalized, this section and requirements.txt should match.
+The project uses FastAPI, Uvicorn and pytest. `httpx` is also installed because FastAPI's `TestClient` cannot run without it and the endpoint tests use `TestClient`. It is needed only by the tests. It was checked on pypi.org, and removing it made `conftest.py` fail to load (see `AI_LOG.md`, Entry 8).
 
 ## AI use
 The baseline was generated with Claude using the Appendix C prompt. See `AI_LOG.md`.

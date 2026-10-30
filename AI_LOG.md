@@ -103,11 +103,23 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 
 | Field | Entry |
 |---|---|
-| Entry # / date | 9 / Oct 30, 2026 |
+| Entry # / date | 9 / Oct 29, 2026 |
 | Tool, model, mode | ChatGPT, GPT-6 |
 | Slice | Slice 1 — Database and repository changes |
 | Prompt | Asked for step-by-step guidance implementing the first slice from `docs/tasks.md`, starting with adding scheduled delivery time to the database and repository. |
 | What the AI produced | Guided me through updating the `orders` table in `db.py` to include a nullable `scheduled_delivery_time` column. Then it helped update `repository.py` so `insert_order()` could save the scheduled time and `get_order()` could retrieve it. It also helped create `tests/test_repository.py` with tests for scheduled orders and regular orders. |
 | What I verified | Reviewed the database and repository changes, then ran `pytest`. The original 15 tests continued to pass. After adding the two repository tests, the full test suite passed with 17 tests and 1 warning. |
 | What I changed and why | Added the nullable `scheduled_delivery_time` column because regular orders do not need a scheduled delivery time. Updated the repository to save and retrieve this value. Added two tests to check that scheduled times are stored correctly and that regular orders return `None`. |
-| Outcome | Slice 1 implementation and tests are complete locally. All 17 tests pass. |
+| Outcome | Accepted. Committed and pushed as e5f337f ("Added scheduled delivery time to order storage"); all 17 tests pass. That commit message did not say how AI was used, so later slice commits will include an AI-use note. |
+
+## Entry 10: Project review and spec/config cleanup
+| Field | Entry |
+|---|---|
+| Entry # / date | 10 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repo access), Claude Sonnet 5.5 |
+| Slice | Pre-implementation cleanup of `docs/design.md`, `docs/tasks.md`, `README.md`, `requirements.txt` and `AI_LOG.md` (no feature code) |
+| Prompt | Shared the assignment PDF, two earlier chat logs and the repo link, and asked for a full understanding of the requirements and my progress, then a plan. Afterwards asked Claude to fix the problems it listed before I continued. |
+| What the AI produced | A requirements-versus-progress review and a ranked problem list: error-handling infrastructure not scheduled in any slice, `ORDER_NOT_FOUND` in the error table with no matching criterion, `services.py` still calling `datetime.now()`, UTC normalisation needed before comparing times as text in SQL, no AC traceability in `tasks.md`, Entry 9 date and status wrong, `httpx` not justified, unpinned dependencies, Python version mismatch between `AGENTS.md` and the README. It then edited the docs and config files. |
+| What I verified | The AI ran the full test suite from a fresh clone (17 passed) and again with my exact pinned versions from `pip freeze` (17 passed). I re-checked its list against the repo and `requirements.md`, and checked that `opentelemetry-api` in my `pip freeze` is a dependency of FastAPI, not something I installed. |
+| What I changed and why | I made four decisions the AI asked me to make: drop the `ORDER_NOT_FOUND` row (AC-16 only requires a 404, and migrating baseline errors would enlarge the diff); state Python 3.12 in both `AGENTS.md` and the README; pin the four direct dependencies to the versions from my own `pip freeze`; and date Entry 9 as Oct 29 to match its commit. The three code items (error type, removing `datetime.now()`, UTC normalisation) were left to the slices that implement them instead of being patched now. |
+| Outcome | Accepted. Docs and config cleanup only; no behaviour changed. |

@@ -9,6 +9,11 @@ from minidash.db import connect
 router = APIRouter()
 
 
+def get_clock(request: Request):
+    """The app's clock (real in production, fake in tests)."""
+    return request.app.state.clock
+
+
 def get_conn(request: Request):
     """Give each request its own connection and always close it."""
     conn = connect(request.app.state.db_path)
@@ -44,12 +49,13 @@ def get_menu(restaurant_id: int, conn=Depends(get_conn)):
 
 
 @router.post("/orders", status_code=201)
-def place_order(order: OrderIn, conn=Depends(get_conn)):
+def place_order(order: OrderIn, conn=Depends(get_conn), clock=Depends(get_clock)):
     return services.place_order(
         conn,
         order.restaurant_id,
         [item.model_dump() for item in order.items],
         order.address,
+        clock.now(),
     )
 
 

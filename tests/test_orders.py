@@ -31,6 +31,17 @@ def test_place_order_returns_new_order_with_total(client, first_restaurant_menu)
     assert len(order["items"]) == 2
 
 
+def test_place_order_stamps_created_at_from_the_injected_clock(client, clock, first_restaurant_menu):
+    item = {"menu_item_id": first_restaurant_menu[0]["id"], "quantity": 1}
+
+    first = make_order(client, 1, [item]).json()
+    clock.advance(minutes=7)
+    second = make_order(client, 1, [item]).json()
+
+    assert first["created_at"] == "2026-10-30T12:00:00+00:00"
+    assert second["created_at"] == "2026-10-30T12:07:00+00:00"
+
+
 def test_place_order_for_unknown_restaurant_returns_404(client):
     response = make_order(client, 999, [{"menu_item_id": 1, "quantity": 1}])
 

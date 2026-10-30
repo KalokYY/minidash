@@ -6,17 +6,19 @@ Run with:  uvicorn minidash.main:create_app --factory --app-dir src
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from minidash.clock import SystemClock
 from minidash.db import DEFAULT_DB_PATH, init_db
 from minidash.errors import InvalidRequestError, NotFoundError
 from minidash.routes import router
 
 
-def create_app(db_path=None):
+def create_app(db_path=None, clock=None):
     db_path = db_path or DEFAULT_DB_PATH
     init_db(db_path)
 
     app = FastAPI(title="MiniDash")
     app.state.db_path = db_path
+    app.state.clock = clock or SystemClock()
     app.include_router(router)
 
     @app.exception_handler(NotFoundError)

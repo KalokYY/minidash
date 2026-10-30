@@ -1,7 +1,5 @@
-
 from minidash.db import connect, init_db
 from minidash import repository
-
 
 def test_insert_order_saves_scheduled_delivery_time(tmp_path):
     db_path = str(tmp_path / "test.db")
