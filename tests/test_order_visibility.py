@@ -12,31 +12,26 @@ ORDER_KEYS = {
 # place_order orders 2 x the first item of restaurant 1 (Margherita Pizza, 1200 cents).
 ITEMS = [{"menu_item_id": 1, "name": "Margherita Pizza", "quantity": 2, "unit_price_cents": 1200}]
 
-
 def get(client, order):
     response = client.get(f"/orders/{order['id']}")
     assert response.status_code == 200
     return response.json()
-
 
 def test_get_shows_the_scheduled_delivery_time_of_a_scheduled_order(client, place_order):
     order = place_order(scheduled_delivery_time=SCHEDULED_FOR)
 
     assert get(client, order)["scheduled_delivery_time"] == SCHEDULED_FOR
 
-
 def test_get_shows_the_scheduled_time_in_utc_when_it_was_sent_with_another_offset(client, place_order):
     order = place_order(scheduled_delivery_time="2026-10-30T14:00:00-04:00")
 
     assert get(client, order)["scheduled_delivery_time"] == "2026-10-30T18:00:00+00:00"
-
 
 def test_get_returns_null_for_an_order_that_was_not_scheduled(client, place_order):
     body = get(client, place_order())
 
     assert "scheduled_delivery_time" in body  # present and null, not left out
     assert body["scheduled_delivery_time"] is None
-
 
 def test_get_still_returns_the_scheduled_time_after_the_order_is_cancelled(client, place_order):
     order = place_order(scheduled_delivery_time=SCHEDULED_FOR)
@@ -46,7 +41,6 @@ def test_get_still_returns_the_scheduled_time_after_the_order_is_cancelled(clien
 
     assert body["status"] == "CANCELLED"
     assert body["scheduled_delivery_time"] == SCHEDULED_FOR
-
 
 def test_get_response_for_a_scheduled_order_has_all_the_existing_fields(client, place_order):
     order = place_order(scheduled_delivery_time=SCHEDULED_FOR)
@@ -61,7 +55,6 @@ def test_get_response_for_a_scheduled_order_has_all_the_existing_fields(client, 
         "scheduled_delivery_time": SCHEDULED_FOR,
         "items": ITEMS,
     }
-
 
 def test_get_response_for_a_regular_order_has_all_the_existing_fields(client, place_order):
     order = place_order()

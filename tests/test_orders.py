@@ -1,12 +1,10 @@
 ADDRESS = "123 Main St"
 
-
 def make_order(client, restaurant_id, items, address=ADDRESS):
     return client.post(
         "/orders",
         json={"restaurant_id": restaurant_id, "items": items, "address": address},
     )
-
 
 # ---- POST /orders ---------------------------------------------------------
 
@@ -41,18 +39,15 @@ def test_place_order_stamps_created_at_from_the_injected_clock(client, clock, fi
     assert first["created_at"] == "2026-10-30T12:00:00+00:00"
     assert second["created_at"] == "2026-10-30T12:07:00+00:00"
 
-
 def test_place_order_for_unknown_restaurant_returns_404(client):
     response = make_order(client, 999, [{"menu_item_id": 1, "quantity": 1}])
 
     assert response.status_code == 404
 
-
 def test_place_order_with_no_items_is_rejected(client):
     response = make_order(client, 1, [])
 
     assert response.status_code == 422
-
 
 def test_place_order_with_zero_quantity_is_rejected(client, first_restaurant_menu):
     item_id = first_restaurant_menu[0]["id"]
@@ -60,7 +55,6 @@ def test_place_order_with_zero_quantity_is_rejected(client, first_restaurant_men
     response = make_order(client, 1, [{"menu_item_id": item_id, "quantity": 0}])
 
     assert response.status_code == 422
-
 
 def test_place_order_with_blank_address_is_rejected(client, first_restaurant_menu):
     item_id = first_restaurant_menu[0]["id"]
@@ -71,14 +65,12 @@ def test_place_order_with_blank_address_is_rejected(client, first_restaurant_men
 
     assert response.status_code == 422
 
-
 def test_place_order_with_item_from_another_restaurant_is_rejected(client):
     other_menu = client.get("/restaurants/2/menu").json()
 
     response = make_order(client, 1, [{"menu_item_id": other_menu[0]["id"], "quantity": 1}])
 
     assert response.status_code == 422
-
 
 # ---- GET /orders/{id} -----------------------------------------------------
 
@@ -100,7 +92,6 @@ def test_get_unknown_order_returns_404(client):
 
     assert response.status_code == 404
 
-
 # ---- PATCH /orders/{id}/status --------------------------------------------
 
 def test_update_status_changes_the_order(client, first_restaurant_menu):
@@ -113,7 +104,6 @@ def test_update_status_changes_the_order(client, first_restaurant_menu):
     assert response.json()["status"] == "PREPARING"
     assert client.get(f"/orders/{placed['id']}").json()["status"] == "PREPARING"
 
-
 def test_update_status_with_invalid_value_is_rejected(client, first_restaurant_menu):
     item = first_restaurant_menu[0]
     placed = make_order(client, 1, [{"menu_item_id": item["id"], "quantity": 1}]).json()
@@ -122,7 +112,6 @@ def test_update_status_with_invalid_value_is_rejected(client, first_restaurant_m
 
     assert response.status_code == 422
     assert client.get(f"/orders/{placed['id']}").json()["status"] == "PLACED"
-
 
 def test_update_status_of_unknown_order_returns_404(client):
     response = client.patch("/orders/999/status", json={"status": "PREPARING"})

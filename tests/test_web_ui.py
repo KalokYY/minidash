@@ -6,14 +6,11 @@ from pathlib import Path
 
 STATIC = Path(__file__).resolve().parent.parent / "src" / "minidash" / "static"
 
-
 def page_js():
     return (STATIC / "app.js").read_text(encoding="utf-8")
 
-
 def spec(client):
     return client.get("/openapi.json").json()
-
 
 def test_home_page_is_served(client):
     response = client.get("/")
@@ -24,7 +21,6 @@ def test_home_page_is_served(client):
     assert "/static/app.css" in response.text
     assert "/static/app.js" in response.text
 
-
 def test_the_pages_css_and_javascript_are_served(client):
     css = client.get("/static/app.css")
     script = client.get("/static/app.js")
@@ -32,13 +28,11 @@ def test_the_pages_css_and_javascript_are_served(client):
     assert css.status_code == 200 and css.headers["content-type"].startswith("text/css")
     assert script.status_code == 200 and "javascript" in script.headers["content-type"]
 
-
 def test_the_page_is_not_listed_as_an_api_endpoint(client):
     paths = spec(client)["paths"]
 
     assert "/" not in paths
     assert not any(path.startswith("/static") for path in paths)
-
 
 def test_every_api_call_the_page_makes_is_a_real_endpoint(client):
     patterns = [re.compile(re.sub(r"\{[^}]+\}", "[^/]+", path)) for path in spec(client)["paths"]]
@@ -48,7 +42,6 @@ def test_every_api_call_the_page_makes_is_a_real_endpoint(client):
     for call in calls:
         concrete = re.sub(r"\$\{[^}]*\}", "1", call)
         assert any(pattern.fullmatch(concrete) for pattern in patterns), f"the page calls {call}, which is not an endpoint"
-
 
 def test_the_order_form_sends_every_field_the_api_expects(client):
     schemas = spec(client)["components"]["schemas"]
@@ -62,11 +55,9 @@ def test_the_order_form_sends_every_field_the_api_expects(client):
         if name not in schemas["OrderIn"]["required"]:
             assert f"body.{name} =" in script, f"the page never sets the optional field {name}"
 
-
 def test_the_page_sends_scheduled_times_with_a_timezone(client):
     # The date picker gives local time without an offset; toISOString() adds one (UTC).
     assert "new Date(checkout.when).toISOString()" in page_js()
-
 
 def test_the_page_never_builds_html_from_text(client):
     script = page_js()

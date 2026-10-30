@@ -22,7 +22,7 @@ pip install -r requirements.txt
 uvicorn minidash.main:create_app --factory --app-dir src --reload
 ```
 
-Open http://127.0.0.1:8000/ for the customer web page, and http://127.0.0.1:8000/docs for the interactive API docs (you can try every endpoint there with the "Try it out" button).
+Open http://127.0.0.1:8000/ for the customer web page, and http://127.0.0.1:8000/docs for the interactive API docs.
 The database file `minidash.db` is created and seeded with 5 restaurants on first start.
 Set the `MINIDASH_DB` environment variable to use a different database file.
 

@@ -10,7 +10,6 @@ from minidash.main import create_app
 DELIVERY = "2026-10-30T18:00:00+00:00"
 FAST = 0.01  # seconds between passes in tests, so nothing waits for the real 30 seconds
 
-
 class PassCounter:
     """Wraps the real release function and counts how many loop passes have finished.
 
@@ -42,7 +41,6 @@ class PassCounter:
 def make_app(tmp_path, clock, interval=FAST):
     return create_app(str(tmp_path / "test.db"), clock=clock, release_interval_seconds=interval)
 
-
 def place(client, **extra):
     body = {
         "restaurant_id": 1,
@@ -54,14 +52,12 @@ def place(client, **extra):
     assert response.status_code == 201
     return response.json()
 
-
 @pytest.fixture
 def running(tmp_path, clock, monkeypatch):
     """A client for an app whose release loop is running quickly, plus the pass counter."""
     passes = PassCounter(monkeypatch)
     with TestClient(make_app(tmp_path, clock)) as client:
         yield client, passes
-
 
 # ---- integration: the loop really releases orders ---------------------------
 
@@ -80,7 +76,6 @@ def test_loop_releases_a_scheduled_order_when_its_release_time_arrives(running, 
     passes.wait_for_more(2)
     assert client.get(f"/orders/{order['id']}").json() == {**order, "status": "PLACED"}
 
-
 def test_loop_never_releases_a_cancelled_order(running, clock):
     client, passes = running
     order = place(client, scheduled_delivery_time=DELIVERY)
@@ -91,7 +86,6 @@ def test_loop_never_releases_a_cancelled_order(running, clock):
 
     assert client.get(f"/orders/{order['id']}").json()["status"] == "CANCELLED"
 
-
 def test_regular_requests_still_work_while_the_loop_runs(running):
     client, passes = running
 
@@ -99,7 +93,6 @@ def test_regular_requests_still_work_while_the_loop_runs(running):
 
     assert client.get("/restaurants").status_code == 200
     assert place(client)["status"] == "PLACED"
-
 
 # ---- lifecycle ---------------------------------------------------------------
 
@@ -112,13 +105,11 @@ def test_loop_starts_with_the_app_and_stops_when_it_shuts_down(tmp_path, clock):
 
     assert not thread.is_alive()
 
-
 def test_no_loop_is_started_when_it_is_switched_off(tmp_path, clock):
     app = make_app(tmp_path, clock, interval=None)
 
     with TestClient(app):
         assert getattr(app.state, "release_thread", None) is None
-
 
 def test_loop_runs_every_30_seconds_by_default(tmp_path, clock, monkeypatch):
     intervals = []
@@ -128,7 +119,6 @@ def test_loop_runs_every_30_seconds_by_default(tmp_path, clock, monkeypatch):
         pass
 
     assert intervals == [30]
-
 
 # ---- the loop's use of the clock and the release function --------------------
 
@@ -147,7 +137,6 @@ def test_loop_calls_release_with_the_time_from_the_injected_clock(tmp_path, cloc
         assert called.wait(timeout=5)
 
     assert seen[0] == clock.now()
-
 
 def test_loop_keeps_running_after_a_failed_pass(tmp_path, clock, monkeypatch):
     second_pass = threading.Event()

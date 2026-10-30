@@ -6,7 +6,6 @@ from minidash.db import connect
 # The fake clock starts at 2026-10-30 12:00 UTC. Luigi's (restaurant 1) is open all afternoon.
 DELIVERY = "2026-10-30T18:00:00+00:00"  # so the release time is 17:30 UTC, 5h30m after the start
 
-
 @pytest.fixture
 def release(client, clock):
     """Run the release process once with the fake clock's current time; return released ids."""
@@ -24,7 +23,6 @@ def release(client, clock):
 def status_of(client, order):
     return client.get(f"/orders/{order['id']}").json()["status"]
 
-
 # ---- AC-10: released at or after 30 minutes before delivery ---------------
 
 def test_order_is_released_exactly_30_minutes_before_delivery(client, clock, place_order, release):
@@ -34,7 +32,6 @@ def test_order_is_released_exactly_30_minutes_before_delivery(client, clock, pla
     assert release() == [order["id"]]
 
     assert client.get(f"/orders/{order['id']}").json() == {**order, "status": "PLACED"}
-
 
 def test_order_is_released_when_the_clock_is_later_than_the_release_time(client, clock, place_order, release):
     order = place_order(scheduled_delivery_time=DELIVERY)
@@ -50,7 +47,6 @@ def test_shortest_allowed_lead_time_is_released_15_minutes_after_placing(client,
 
     assert release() == [order["id"]]
 
-
 # ---- AC-11: not released early ---------------------------------------------
 
 def test_order_stays_scheduled_one_second_before_the_release_time(client, clock, place_order, release):
@@ -59,7 +55,6 @@ def test_order_stays_scheduled_one_second_before_the_release_time(client, clock,
 
     assert release() == []
     assert client.get(f"/orders/{order['id']}").json() == order
-
 
 def test_only_the_orders_that_are_due_are_released(client, clock, place_order, release):
     early = place_order(scheduled_delivery_time=DELIVERY)
@@ -70,7 +65,6 @@ def test_only_the_orders_that_are_due_are_released(client, clock, place_order, r
 
     assert status_of(client, early) == "PLACED"
     assert client.get(f"/orders/{late['id']}").json() == late
-
 
 # ---- AC-12: safe to run again ----------------------------------------------
 
@@ -83,7 +77,6 @@ def test_running_release_again_does_not_release_the_same_order_twice(client, clo
     assert release() == []
 
     assert status_of(client, order) == "PLACED"
-
 
 def test_release_does_not_touch_an_order_that_moved_on_after_release(client, clock, place_order, release):
     order = place_order(scheduled_delivery_time=DELIVERY)
@@ -103,7 +96,6 @@ def test_a_regular_placed_order_is_not_changed(client, clock, place_order, relea
     assert release() == []
     assert client.get(f"/orders/{order['id']}").json() == order
 
-
 # ---- AC-14: cancelled orders are never released ----------------------------
 
 def test_a_cancelled_order_is_never_released(client, clock, place_order, release):
@@ -114,7 +106,6 @@ def test_a_cancelled_order_is_never_released(client, clock, place_order, release
     assert release() == []
 
     assert status_of(client, order) == "CANCELLED"
-
 
 def test_an_order_cancelled_after_it_was_listed_as_due_is_not_released(client, clock, place_order, monkeypatch):
     # Simulates the cancel winning a race: release has already read its list of

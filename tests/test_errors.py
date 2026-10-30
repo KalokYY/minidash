@@ -27,7 +27,6 @@ DESIGN_TABLE = [
     ),
 ]
 
-
 @pytest.mark.parametrize("make_error, code, message", DESIGN_TABLE)
 def test_api_error_becomes_a_code_and_message_body_with_its_http_status(
     tmp_path, clock, make_error, code, message

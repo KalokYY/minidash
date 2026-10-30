@@ -1,14 +1,11 @@
 """The /docs page pre-fills request bodies. These tests make sure they actually work."""
 
-
 def spec(client):
     return client.get("/openapi.json").json()
-
 
 def body_example(client, path, method):
     """The example the docs page shows for this endpoint's request body."""
     return spec(client)["paths"][path][method]["requestBody"]["content"]["application/json"]["example"]
-
 
 def test_order_example_is_a_scheduled_order_that_can_be_placed_unchanged(client):
     example = body_example(client, "/orders", "post")
@@ -19,19 +16,16 @@ def test_order_example_is_a_scheduled_order_that_can_be_placed_unchanged(client)
     assert response.json()["status"] == "SCHEDULED"
     assert response.json()["scheduled_delivery_time"] == "2026-10-31T18:00:00+00:00"
 
-
 def test_example_time_comes_from_the_injected_clock(client):
     # The fake clock starts at 2026-10-30 12:00 UTC, so "tomorrow 18:00" is the 31st.
     example = body_example(client, "/orders", "post")
 
     assert example["scheduled_delivery_time"] == "2026-10-31T18:00:00+00:00"
 
-
 def test_example_time_moves_forward_when_the_clock_does(client, clock):
     clock.advance(days=3)
 
     assert body_example(client, "/orders", "post")["scheduled_delivery_time"] == "2026-11-03T18:00:00+00:00"
-
 
 def test_status_example_can_be_sent_unchanged(client, place_order):
     order = place_order()
@@ -42,7 +36,6 @@ def test_status_example_can_be_sent_unchanged(client, place_order):
     assert response.status_code == 200
     assert response.json()["status"] == "PREPARING"
 
-
 def test_the_example_order_can_then_be_cancelled(client):
     order = client.post("/orders", json=body_example(client, "/orders", "post")).json()
 
@@ -51,13 +44,11 @@ def test_the_example_order_can_then_be_cancelled(client):
     assert response.status_code == 200
     assert response.json()["status"] == "CANCELLED"
 
-
 def test_schema_level_examples_match_the_request_body_examples(client):
     schemas = spec(client)["components"]["schemas"]
 
     assert schemas["OrderIn"]["examples"] == [body_example(client, "/orders", "post")]
     assert schemas["StatusIn"]["examples"] == [body_example(client, "/orders/{order_id}/status", "patch")]
-
 
 def test_endpoints_are_grouped_and_described(client):
     openapi = spec(client)

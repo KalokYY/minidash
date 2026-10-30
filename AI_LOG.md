@@ -1,7 +1,5 @@
 # AI Usage Log
-
 Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled Orders)
-
 
 ## Entry 1: Understanding the assignment and planning
 | Field | Entry |
@@ -61,7 +59,7 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What the AI produced | A review of my draft (overlapping errors for past vs. too-soon times, no order of checks, release criterion with no trigger, missing "not yet released" case, duplicate opening-hours criteria, a self-contradicting cancel criterion, missing visibility criterion). Then a revised `requirements.md` with 18 numbered criteria (AC-1 to AC-18), a conventions section, and a longer out-of-scope list. |
 | What I verified | re-read each AC and checked I could describe a test for it in one sentence |
 | What I changed and why | The AI applied the agreed fixes to the draft. The AI also picked three defaults I had not decided: (1) order of checks: invalid, too soon, too far, closed; (2) timestamps need a timezone offset and are treated as UTC, and restaurant hours are read as UTC time-of-day; (3) a time at or before now is SCHEDULE_INVALID. |
-| Outcome |  Accepted with changes. Committed as "Added requirements.md with 18 EARS criteria (AI-reviewed the draft)". |
+| Outcome |  Accepted with changes. Committed |
 
 ## Entry 6: Design: release mechanism decision, ADR and diagram
 | Field | Entry |
@@ -69,11 +67,11 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | Entry # / date | 6 / Oct 28, 2026 |
 | Tool, model, mode | Claude (claude.ai chat), Claude Sonnet 5.5 |
 | Slice | `docs/design.md` (outline, release-trigger ADR, Mermaid diagram) |
-| Prompt| Shared lecture slides (Modules 3-5) and asked for an outline of design.md. Wrote my own framing (context, goal, quality targets, constraints) for how scheduled orders get released. Asked what "one deployable" and "dependency rule" meant, whether APScheduler is easier, and what "release on read" means. Asked for the diagram and ADR to be drafted. |
+| Prompt | Shared lecture slides (Modules 3-5) and asked for an outline of design.md. Wrote my own framing (context, goal, quality targets, constraints) for how scheduled orders get released. Asked what "one deployable" and "dependency rule" meant, whether APScheduler is easier, and what "release on read" means. Asked for the diagram and ADR to be drafted. |
 | What the AI produced | An outline of design.md, an explanation of the constraints, a comparison of three release options (release on read (Option A), background loop (Option B), APScheduler(Option C)) scored against my quality targets, a list of what could break first in the background loop, a Mermaid sequence diagram, a draft of ADR-001, and an assembled design.md with sections 1-2, 4-5 and 8 left as placeholders. |
 | What I verified | checked the options table against my requirements (AC-10 to AC-14) and User Story 3 |
 | What I changed and why | Chose option B (background loop), because the system acts on its own, and deleting the local `minidash.db` instead of writing a migration. The AI corrected my reasoning that B has fewer errors than A (it has more moving parts, and B is chosen because it fits User Story 3). |
-| Outcome | Accepted with edits to ADR-001. Committed as "Added design.md". |
+| Outcome | Accepted with edits to ADR-001. Committed |
 
 ## Entry 7: Design: updating acceptance criteria references
 | Field | Entry |
@@ -110,154 +108,148 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What the AI produced | Guided me through updating the `orders` table in `db.py` to include a nullable `scheduled_delivery_time` column. Then it helped update `repository.py` so `insert_order()` could save the scheduled time and `get_order()` could retrieve it. It also helped create `tests/test_repository.py` with tests for scheduled orders and regular orders. |
 | What I verified | Reviewed the database and repository changes, then ran `pytest`. The original 15 tests continued to pass. After adding the two repository tests, the full test suite passed with 17 tests and 1 warning. |
 | What I changed and why | Added the nullable `scheduled_delivery_time` column because regular orders do not need a scheduled delivery time. Updated the repository to save and retrieve this value. Added two tests to check that scheduled times are stored correctly and that regular orders return `None`. |
-| Outcome | Accepted. Committed and pushed as e5f337f ("Added scheduled delivery time to order storage"); all 17 tests pass. That commit message did not say how AI was used, so later slice commits will include an AI-use note. |
+| Outcome | Accepted. Committed; all 17 tests pass. |
 
 ## Entry 10: Project review and spec/config cleanup
 | Field | Entry |
 |---|---|
 | Entry # / date | 10 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repo access), Claude Sonnet 5.5 |
-| Slice | Pre-implementation cleanup of `docs/design.md`, `docs/tasks.md`, `README.md`, `requirements.txt` and `AI_LOG.md` (no feature code) |
-| Prompt | Shared the assignment PDF, two earlier chat logs and the repo link, and asked for a full understanding of the requirements and my progress, then a plan. Afterwards asked Claude to fix the problems it listed before I continued. |
-| What the AI produced | A requirements-versus-progress review and a ranked problem list: error-handling infrastructure not scheduled in any slice, `ORDER_NOT_FOUND` in the error table with no matching criterion, `services.py` still calling `datetime.now()`, UTC normalisation needed before comparing times as text in SQL, no AC traceability in `tasks.md`, Entry 9 date and status wrong, `httpx` not justified, unpinned dependencies, Python version mismatch between `AGENTS.md` and the README. It then edited the docs and config files. |
-| What I verified | The AI ran the full test suite from a fresh clone (17 passed) and again with my exact pinned versions from `pip freeze` (17 passed). I re-checked its list against the repo and `requirements.md`, and checked that `opentelemetry-api` in my `pip freeze` is a dependency of FastAPI, not something I installed. |
-| What I changed and why | I made four decisions the AI asked me to make: drop the `ORDER_NOT_FOUND` row (AC-16 only requires a 404, and migrating baseline errors would enlarge the diff); state Python 3.12 in both `AGENTS.md` and the README; pin the four direct dependencies to the versions from my own `pip freeze`; and date Entry 9 as Oct 29 to match its commit. The three code items (error type, removing `datetime.now()`, UTC normalisation) were left to the slices that implement them instead of being patched now. |
-| Outcome | Accepted. Docs and config cleanup only; no behaviour changed. |
+| Slice | Cleanup of `design.md`, `tasks.md`, `README.md`, `requirements.txt` and `AI_LOG.md` before coding. No feature code. |
+| Prompt | Gave Claude the assignment PDF, two earlier chat logs and my repo link. Asked it to understand the requirements and what I had done so far, then make a plan. After that I asked it to fix the problems it found. |
+| What the AI produced | A review of the requirements against my progress, and a list of problems: no slice for the error handling, an `ORDER_NOT_FOUND` row in the error table that no criterion needed, `services.py` still calling `datetime.now()`, times that need to be in UTC before comparing, no AC links in `tasks.md`, a wrong date and status on Entry 9, `httpx` not explained, unpinned dependencies, and a Python version mismatch between `AGENTS.md` and the README. Then it edited the docs and config files. |
+| What I verified | Claude ran the full tests from a fresh clone (17 passed) and again with my versions from `pip freeze` (17 passed). I checked its list against the repo and `requirements.md`. I also checked that `opentelemetry-api` in my `pip freeze` comes with FastAPI and I did not install it myself. |
+| What I changed and why | Claude asked me to decide four things. I dropped the `ORDER_NOT_FOUND` row, because AC-16 only needs a 404. I chose Python 3.12 for `AGENTS.md` and the README. I pinned the four main dependencies to my `pip freeze` versions. I dated Entry 9 as Oct 29 to match its commit. The three code problems were left for the slices that fix them. |
+| Outcome | Accepted. Docs and config only, no behaviour changed. Committed |
 
-## Entry 11: Implementing Slice 2 — Injected Clock
-
+## Entry 11: Slice 2, injected clock
 | Field | Entry |
 |---|---|
 | Entry # / date | 11 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
-| Slice | Slice 2: Injected Clock (AC-19) |
-| Prompt | Asked Claude to implement Slice 2 based on `docs/tasks.md` and `design.md`. |
-| What the AI produced | Added `clock.py` with `SystemClock`; added a `clock` argument to `create_app`; added a `get_clock` dependency in `routes.py`; changed `place_order` to require `now` as an argument; added a `FakeClock` and `clock` fixture in `conftest.py`; and added three clock tests and one `created_at` test. |
-| What I verified | Reviewed the diff and ran `pytest` (21 passed). Also performed mutation checks by putting `datetime.now()` back in `services.py` and making the route ignore the injected clock. |
-| What I changed and why | Nothing.|
-| Outcome | Accepted. All 21 tests passed. |
+| Slice | Slice 2: injected clock (AC-19) |
+| Prompt | Asked Claude to implement Slice 2 from `docs/tasks.md` and `design.md`. |
+| What the AI produced | `clock.py` with `SystemClock`, a `clock` argument on `create_app`, a `get_clock` dependency in `routes.py`, and `place_order` now needs `now` passed in. Also a `FakeClock` and `clock` fixture in `conftest.py`, three clock tests and one `created_at` test. |
+| What I verified | Read the diff and ran `pytest` (21 passed). I also did two mutation checks: put `datetime.now()` back in `services.py`, and made the route ignore the injected clock. Both made tests fail. |
+| What I changed and why | Nothing. |
+| Outcome | Accepted. 21 tests passed. Committed |
 
-## Entry 12: Slice 3 — error type and scheduling validation
+## Entry 12: Slice 3, error type and scheduling validation
 | Field | Entry |
 |---|---|
 | Entry # / date | 12 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repo access), Claude Sonnet 5.5 |
 | Slice | Slice 3: error type and scheduling validation (AC-3 to AC-7) |
-| Prompt | Pointed Claude at `requirements.md`, `design.md` and `AGENTS.md`. Required the AC-6 check order, opening hours read as UTC time-of-day, no new dependencies, and no changes outside Slice 3. Asked it to ask before going outside the slice. |
-| What the AI produced | `ApiError` plus four factory functions in `errors.py`, an `ApiError` handler in `main.py`, `validate_scheduled_delivery` in `services.py`, and 38 new tests (boundaries, invalid inputs, UTC normalisation, opening hours, check priority, error response shape). |
-| What I verified | Read the diff. My first `pytest` run had 37 failures (22 passed): the new test files and `errors.py` were in place, but `services.py` and `main.py` had not been updated, so the tests could not find `validate_scheduled_delivery` and the `ApiError` handler. After extracting the package over the repo, `pytest` gave 59 passed. Claude also ran ten deliberate breakages of the rules (for example 45 minutes changed to 44, "at or before now" weakened to "before now", `closes_at` made exclusive, skipping the UTC conversion, running the closed check first), and each made at least one test fail. |
-| What I changed and why | No change to the AI's code. I fixed my own incomplete file copy by extracting the full package again. I noted that the slice's "fixed text format" for stored times is deferred to Slice 4, where the value is written. |
-| Outcome | Accepted. |
+| Prompt | Pointed Claude at `requirements.md`, `design.md` and `AGENTS.md`. Told it to use the AC-6 check order, read opening hours as UTC time of day, add no new dependencies, and change nothing outside Slice 3. Asked it to ask me before going outside the slice. |
+| What the AI produced | `ApiError` and four error functions in `errors.py`, an `ApiError` handler in `main.py`, `validate_scheduled_delivery` in `services.py`, and 38 new tests (boundaries, invalid inputs, UTC conversion, opening hours, check order, error response shape). |
+| What I verified | Read the diff. My first `pytest` run had 37 failures (22 passed), because `services.py` and `main.py` were not updated, only the tests and `errors.py`. After I extracted the package over the repo again, `pytest` gave 59 passed. Claude also made ten deliberate breakages of the rules (for example 45 minutes changed to 44, "at or before now" weakened to "before now", `closes_at` made exclusive, skipping the UTC conversion, running the closed check first). Each one made at least one test fail. |
+| What I changed and why | No change to the AI's code. I fixed my own incomplete file copy. The "fixed text format" for stored times is left for Slice 4, where the value is written. |
+| Outcome | Accepted. Committed |
 
-## Entry 13: Implementing Slice 4 — Scheduled Order Creation
-
+## Entry 13: Slice 4, scheduled order creation
 | Field | Entry |
 |---|---|
 | Entry # / date | 13 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
-| Slice | Slice 4: Accept scheduled delivery time through POST `/orders` (AC-1 to AC-9) |
-| Prompt | Asked Claude to implement Slice 4 based on `docs/tasks.md`, `design.md`, and the existing requirements. Asked it to keep the request field name `scheduled_delivery_time`, follow the existing UTC conventions, and limit changes to this slice. |
-| What the AI produced | Updated `routes.py` so POST `/orders` accepts an optional `scheduled_delivery_time` as a plain string and passes it to the service. Updated `services.py` to validate the requested time, set the order status to `SCHEDULED`, and store the time in UTC. Regular orders without a scheduled time remain `PLACED`. Added 15 new tests covering valid scheduled orders, time boundaries, UTC conversion, regular orders, invalid requests, validation priority, and unknown restaurants. `repository.py` was left unchanged because Slice 1 already supports saving the scheduled time. |
-| What I verified | The full test suite passed with 74 tests. Reviewed the changed files and checked the new tests. Also performed six mutation checks: changing the status to `PLACED`, skipping validation, storing the original timestamp instead of UTC, using a truthiness check, not saving the scheduled time, and making the route ignore the field. Each change caused at least one test to fail. |
-| What I changed and why | No manual code changes. Claude identified and corrected two issues in its first draft of the tests: one test did not actually include a scheduled time when checking an unknown restaurant, and a helper was imported from another test file. I also reviewed the known limitations: a scheduled order can still be changed through PATCH until Slices 6 and 7 add the status restrictions, and non-string timestamp input receives FastAPI's default 422 response rather than the custom `SCHEDULE_INVALID` response. |
-| Outcome | Accepted. All 74 tests passed. Slice 4 implementation is complete locally. Committed. |
+| Slice | Slice 4: accept a scheduled delivery time in POST `/orders` (AC-1 to AC-9) |
+| Prompt | Asked Claude to implement Slice 4 from `docs/tasks.md`, `design.md` and the requirements. Told it to keep the field name `scheduled_delivery_time`, follow the UTC rules we already had, and stay inside this slice. |
+| What the AI produced | `routes.py` now accepts an optional `scheduled_delivery_time` as plain text and passes it on. `services.py` validates it, saves the order as `SCHEDULED` and stores the time in UTC. Orders without a time stay `PLACED`. 15 new tests: valid orders, boundaries, UTC conversion, normal orders, invalid requests, check order and unknown restaurants. `repository.py` did not change, because Slice 1 already saves the time. |
+| What I verified | Full suite passed with 74 tests. I read the changed files and the new tests. Claude also did six mutation checks (status changed to `PLACED`, validation skipped, original timestamp stored instead of UTC, a truthiness check, time not saved, route ignoring the field). Each one made at least one test fail. |
+| What I changed and why | No code changes from me. Claude found and fixed two problems in its own first draft of the tests: one unknown-restaurant test did not send a scheduled time, and a helper was imported from another test file. I noted two known limits: PATCH can still change a scheduled order until Slices 6 and 7, and a non-text timestamp gets FastAPI's normal 422 instead of `SCHEDULE_INVALID`. |
+| Outcome | Accepted. 74 tests passed. Committed. |
 
-## Entry 14: Cancel scheduled orders (Slice 6 in `docs/tasks.md`)
+## Entry 14: Slice 6, cancel scheduled orders
 | Field | Entry |
 |---|---|
 | Entry # / date | 14 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
 | Slice | Slice 6: cancel scheduled orders (AC-13, AC-15, AC-16) |
-| Prompt | Asked Claude to read `AGENTS.md`, `requirements.md`, `design.md` and the code first, then implement cancellation: a cancel endpoint following `design.md`, SCHEDULED orders become CANCELLED, other statuses return `ORDER_NOT_CANCELLABLE`, a missing order returns 404, no other order data changes. Asked for focused tests, the full suite, mutation checks, no changes outside the slice, no commit or push, and no start on later slices. I called this "Slice 5" in the prompt; in `tasks.md` it is Slice 6, and Slice 5 (GET visibility tests) is still open. |
-| What the AI produced | `POST /orders/{id}/cancel` in `routes.py`; `cancel_order` in `services.py`; `order_not_cancellable()` (409) in `errors.py`; `transition_order_status` in `repository.py`, one `UPDATE … WHERE id = ? AND status = ?` that reports whether a row changed; 11 tests in `tests/test_cancel_order.py` and 2 in `tests/test_repository.py`. A missing order uses the existing 404 `{"detail"}` response, as decided when `ORDER_NOT_FOUND` was dropped. |
-| What I verified | Read the code changes and ran the full test suite: 87 passed. Claude performed eight mutation checks, and each was caught by the tests. I also performed two mutation checks myself: removing the condition that only allows cancellation of `SCHEDULED` orders in `repository.py`, and changing the new status from `CANCELLED` to `PLACED` in `services.py`. Both mutations caused tests to fail. I restored the original code and ran `pytest` again: all 87 tests passed. |
-| What I changed and why | No code changes. I kept the slice to Slice 6 as written in `tasks.md`. AC-14 (release never touches a cancelled order) is not tested here because the release function belongs to a later slice. |
-| Outcome | Accepted. Known limits: `PATCH /status` can still set CANCELLED until the status-guard slice, and there is no test with two truly simultaneous requests. |
+| Prompt | Asked Claude to read `AGENTS.md`, `requirements.md`, `design.md` and the code first. Then build a cancel endpoint as in `design.md`: `SCHEDULED` becomes `CANCELLED`, other statuses return `ORDER_NOT_CANCELLABLE`, a missing order returns 404, nothing else changes. Asked for focused tests, the full suite, mutation checks, no changes outside the slice, no commit or push, and no later slices. In the prompt I called this "Slice 5", but in `tasks.md` it is Slice 6. Slice 5 (GET visibility tests) was still open. |
+| What the AI produced | `POST /orders/{id}/cancel` in `routes.py`, `cancel_order` in `services.py`, `order_not_cancellable()` (409) in `errors.py`, and `transition_order_status` in `repository.py` (one `UPDATE ... WHERE id = ? AND status = ?` that says whether a row changed). 11 tests in `tests/test_cancel_order.py` and 2 in `tests/test_repository.py`. A missing order uses the old 404 `{"detail"}` response, as decided when I dropped `ORDER_NOT_FOUND`. |
+| What I verified | Read the code and ran the full suite: 87 passed. Claude did eight mutation checks and the tests caught all of them. I did two myself: removed the check that only `SCHEDULED` orders can be cancelled in `repository.py`, and changed `CANCELLED` to `PLACED` in `services.py`. Both made tests fail. I restored the code and `pytest` passed again (87). |
+| What I changed and why | No code changes. I kept the work to Slice 6 as written in `tasks.md`. AC-14 (release never touches a cancelled order) is not tested here, because the release function comes in a later slice. |
+| Outcome | Accepted. Committed |
 
-## Entry 15: Implementing Slice 7 — Protecting Scheduled and Cancelled Order Statuses
-
+## Entry 15: Slice 7, protect scheduled and cancelled statuses
 | Field | Entry |
 |---|---|
 | Entry # / date | 15 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
-| Slice | Slice 7: Protect scheduled and cancelled order statuses (AC-17) |
-| Prompt | Asked Claude to implement Slice 7 based on `docs/tasks.md`, `requirements.md`, and `design.md`. Asked it to protect scheduled and cancelled orders from manual status changes through PATCH `/orders/{order_id}/status`, preserve normal status changes, add focused tests, run the full test suite, and perform mutation checks. |
-| What the AI produced | Updated `services.py` to prevent manual status changes to or from `SCHEDULED` and `CANCELLED`. Added the `STATUS_CHANGE_NOT_ALLOWED` error with an HTTP 409 response. Added `SCHEDULED` as a recognized status so attempts to change an order to it return the required 409 instead of a 422 validation error. Added tests covering protected statuses, normal status transitions, error responses, nonexistent orders, and invalid status values. |
-| What I verified | Reviewed the code changes and ran the full test suite: 113 passed. Claude performed seven mutation checks, and each caused at least one test to fail. I also performed a mutation check myself by temporarily removing `SCHEDULED` from `PROTECTED_STATUSES` in `services.py`. The tests failed as expected because scheduled orders were no longer protected. I restored the original code and ran `pytest` again: all 113 tests passed. |
-| What I changed and why | No manual code changes. The `STATUS_CHANGE_NOT_ALLOWED` error had to be added because it did not exist in the code before this slice. `SCHEDULED` also had to be added as a recognized status to return the required error instead of the default 422 validation response. |
-| Outcome | Accepted. All 113 tests passed. The implementation is ready for the next slice. |
+| Slice | Slice 7: protect scheduled and cancelled order statuses (AC-17) |
+| Prompt | Asked Claude to implement Slice 7 from `docs/tasks.md`, `requirements.md` and `design.md`. Block manual status changes to or from `SCHEDULED` and `CANCELLED` through PATCH `/orders/{order_id}/status`, keep the normal changes working, add focused tests, run the full suite and do mutation checks. |
+| What the AI produced | `services.py` now blocks those changes. Added the `STATUS_CHANGE_NOT_ALLOWED` error (409). Added `SCHEDULED` as a known status, so trying to set it gives the required 409 and not a 422. Tests for protected statuses, normal changes, error responses, missing orders and invalid statuses. |
+| What I verified | Read the code and ran the full suite: 113 passed. Claude did seven mutation checks and each made at least one test fail. I did one myself: removed `SCHEDULED` from `PROTECTED_STATUSES` in `services.py`. The tests failed as expected. I restored it and `pytest` passed again (113). |
+| What I changed and why | No code changes from me. The `STATUS_CHANGE_NOT_ALLOWED` error did not exist before, so it had to be added. `SCHEDULED` had to be a known status, so the API returns the required error and not the default 422. |
+| Outcome | Accepted. 113 tests passed. Committed |
 
-## Entry 16: Implementing Slice 8 — Releasing Scheduled Orders
-
+## Entry 16: Slice 8, release scheduled orders
 | Field | Entry |
 |---|---|
-| Date | October 30, 2026 |
-| Tool | Claude agent session, Sonnet 5.5 |
-| Task | Implement Slice 8 from `docs/tasks.md`: release scheduled orders 30 minutes before their scheduled delivery time (AC-10, AC-11, AC-12, AC-14, AC-19). |
-| Prompt | Asked Claude to implement the scheduled-order release function according to the requirements and design documents, use the injected clock, prevent duplicate releases, add tests, and verify the implementation without starting Slice 9. |
-| What AI produced | Added `list_scheduled_orders()` in `repository.py` to retrieve scheduled orders with a delivery time. Added `RELEASE_LEAD` and `release_due_orders(conn, now)` in `services.py`. Added 10 tests in `tests/test_release.py` and one repository test in `tests/test_repository.py`. The release function changes due orders from SCHEDULED to PLACED using the existing conditional status update. |
-| What I verified | Extracted the updated files into the project and ran the full test suite myself: 124 passed, 0 failed. Claude also performed nine mutation checks, and each was caught by the tests. I performed an additional mutation check myself by changing the release threshold from 30 minutes to 29 minutes in `services.py`. This caused 3 tests to fail, as expected (3 failed, 121 passed). I restored the original 30-minute threshold and reran the full test suite. |
-| What changed | No manual code changes. The implementation checks whether an order has reached its release time (30 minutes before delivery) and only updates orders that are still SCHEDULED. The conditional repository update prevents cancelled or already-transitioned orders from being released. |
-| Outcome | Accepted for review. All 124 tests passed. Slice 8 is implemented locally Committed. |
+| Entry # / date | 16 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 8: release scheduled orders 30 minutes before delivery (AC-10, AC-11, AC-12, AC-14, AC-19) |
+| Prompt | Asked Claude to implement the release function from the requirements and design, use the injected clock, stop duplicate releases, add tests and check it, without starting Slice 9. My first prompt also asked for the background loop. Claude pointed out that `tasks.md` puts the loop in Slice 9, so I told it to follow the task breakdown and do only the release function. |
+| What the AI produced | `list_scheduled_orders()` in `repository.py`, `RELEASE_LEAD` and `release_due_orders(conn, now)` in `services.py`, 10 tests in `tests/test_release.py` and one repository test. The function moves due orders from `SCHEDULED` to `PLACED` with the same conditional status update as cancel. |
+| What I verified | Extracted the files and ran the full suite: 124 passed. Claude did nine mutation checks and each one was caught. I did one myself: changed the release time from 30 to 29 minutes in `services.py`. Three tests failed (3 failed, 121 passed). I put 30 back and ran the suite again. |
+| What I changed and why | No code changes from me. The conditional update means a cancelled order or an already-released order cannot be released again. |
+| Outcome | Accepted. 124 tests passed. Committed |
 
-## Entry 17: Implementing Slice 9 — Background Release Loop and Integration Test
-
+## Entry 17: Slice 9, background release loop and integration test
 | Field | Entry |
 |---|---|
-| Date | October 30, 2026 |
-| Tool | Claude agent session, Sonnet 5.5 |
-| Task | Implement Slice 9 from `docs/tasks.md`: add the background release loop and integration test for scheduled orders (AC-10, AC-11, AC-12, AC-14, AC-19). |
-| Prompt | Asked Claude to implement the background release loop according to the requirements and design documents, reuse the existing Slice 8 release function, handle application startup and shutdown, add integration tests, and verify the implementation without making unrelated changes. |
-| What AI produced | Added the background release loop in `main.py` and connected it to the application lifespan. Added a configurable `release_interval_seconds` argument, defaulting to 30 seconds, with `None` to disable the loop. Updated the `client` fixture in `tests/conftest.py` to disable the loop during regular tests. Added eight tests in `tests/test_release_loop.py` covering the loop, integration, lifecycle, and error handling. |
-| What I verified | Extracted the updated files and ran the full test suite myself: 132 passed, 0 failed. Claude also performed seven mutation checks, and each was caught by the tests. I performed an additional mutation check myself in `src/minidash/main.py` by changing `RELEASE_INTERVAL_SECONDS` from 30 to 60. The test `test_loop_runs_every_30_seconds_by_default` failed as expected (1 failed, 131 passed), detecting the incorrect interval. I restored the original 30-second interval and reran the full test suite: 132 passed, 0 failed. |
-| What changed | No manual code changes. The background loop now calls the existing `release_due_orders` function using the injected clock. It starts with the application and stops during shutdown. The loop uses a separate database connection and runs independently of regular API requests. |
-| Outcome | Accepted. All 132 tests passed. Claude also repeated the full test suite five times and the loop tests ten times without failures. Committed |
+| Entry # / date | 17 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 9: background release loop and integration test (AC-10, AC-11, AC-12, AC-14, AC-19) |
+| Prompt | Asked Claude to build the background loop from the requirements and design, reuse the Slice 8 release function, handle startup and shutdown, add integration tests, and make no unrelated changes. |
+| What the AI produced | The release loop in `main.py`, started and stopped with the app. A `release_interval_seconds` argument (30 by default, `None` turns the loop off). The `client` fixture in `tests/conftest.py` now turns the loop off for normal tests. 8 tests in `tests/test_release_loop.py` for the loop, the integration, startup and shutdown, and error handling. |
+| What I verified | Extracted the files and ran the full suite: 132 passed. Claude did seven mutation checks and each one was caught. I did one myself in `main.py`: changed `RELEASE_INTERVAL_SECONDS` from 30 to 60. `test_loop_runs_every_30_seconds_by_default` failed (1 failed, 131 passed). I put 30 back and got 132 passed. Claude also ran the full suite five times and the loop tests ten times with no failures. |
+| What I changed and why | No code changes from me. The loop calls the Slice 8 `release_due_orders` with the injected clock. It uses its own database connection and runs apart from normal requests. |
+| Outcome | Accepted. 132 tests passed. Committed |
 
-## Entry 18: Implementing Slice 5 — GET Visibility Tests
-
+## Entry 18: Slice 5, GET visibility tests
 | Field | Entry |
 |---|---|
-| Date | October 30, 2026 |
-| Tool | Claude agent session, Sonnet 5.5 |
-| Task | Complete Slice 5 from `docs/tasks.md`: add dedicated GET visibility tests for scheduled orders and regular orders (AC-18). |
-| Prompt | Asked Claude to inspect the existing GET endpoint and tests, identify missing coverage for AC-18, add focused tests where needed, and avoid changing application code or unrelated files. |
-| What AI produced | Added a new test file, `tests/test_order_visibility.py`, containing six tests covering the scheduled delivery time in GET responses, UTC normalization, regular orders returning `null`, cancelled scheduled orders retaining their scheduled time, and the full response structure for scheduled and regular orders. No application code was changed. |
-| What I verified | Ran the new test file and confirmed that all six tests passed. I then performed a mutation test by temporarily adding `order.pop("scheduled_delivery_time")` to the GET route. All six tests failed as expected, confirming that the tests detect when the field is missing from the response. |
-| What changed | Added `tests/test_order_visibility.py`. No manual application code changes were made. The tests explicitly verify the GET response fields and ensure that `scheduled_delivery_time` is included, including when its value is `null`. |
-| Outcome | Accepted. The mutation test caused all six new tests to fail as expected. Restored the original GET route. Full test suite: 138 passed, 0 failed. |
+| Entry # / date | 18 / Oct 30, 2026 |
+| Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
+| Slice | Slice 5: GET visibility tests for scheduled and normal orders (AC-18) |
+| Prompt | Asked Claude to look at the GET endpoint and the existing tests, find what AC-18 still needed, add focused tests, and not change app code or other files. |
+| What the AI produced | A new file, `tests/test_order_visibility.py`, with six tests: the scheduled time shows in GET, UTC conversion, normal orders return `null`, a cancelled scheduled order keeps its time, and the full response for scheduled and normal orders. No app code changed. |
+| What I verified | Ran the new tests: all six passed. Then I did a mutation myself: added `order.pop("scheduled_delivery_time")` to the GET route. All six tests failed, so they notice when the field is missing. I removed it and ran the full suite: 138 passed. |
+| What I changed and why | Nothing in the app. Only the new test file was added. |
+| Outcome | Accepted. 138 tests passed. Committed|
 
-## Entry 19: Runnable examples and sections for the API docs page
+## Entry 19: Runnable examples and sections on the API docs page
 | Field | Entry |
 |---|---|
 | Entry # / date | 19 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
-| Slice | Optional polish: pre-filled example requests and endpoint sections on `/docs` (no change to the API) |
-| Prompt | Asked how to make the generated API docs page look better. Chose the small option: pre-filled example request bodies that work when run unchanged, plus a title, description and grouped sections. |
-| What the AI produced | A title, description and "Restaurants" and "Orders" sections; endpoint summaries and descriptions in `routes.py`; example bodies for `POST /orders` and `PATCH /orders/{id}/status`, built in `main.py` from the injected clock (tomorrow at 18:00 UTC) so they stay inside the 45-minute to 7-day window; 7 tests in `tests/test_docs_examples.py` that post the examples unchanged. |
-| What I verified | Reviewed the diff and ran the full suite: 145 passed. Claude ran five deliberate breakages (for example an example 10 days out, or an unknown restaurant), each caught by tests, and checked the examples against a real running server. |
-| What I changed and why | No code changes. I chose the small option because the required work was still open and the assignment treats a front-end as an optional stretch goal. |
+| Slice | Optional polish: pre-filled example requests and sections on `/docs` (no change to the API) |
+| Prompt | Asked how to make the generated API docs page look better. Picked the small option: example request bodies that work when run as they are, plus a title, a description and grouped sections. |
+| What the AI produced | A title, a description, and "Restaurants" and "Orders" sections. Summaries and descriptions for the endpoints in `routes.py`. Example bodies for `POST /orders` and `PATCH /orders/{id}/status`, built in `main.py` from the injected clock (tomorrow at 18:00 UTC) so they stay inside the 45-minute to 7-day window. 7 tests in `tests/test_docs_examples.py` that post the examples unchanged. |
+| What I verified | Read the diff and ran the full suite: 145 passed. Claude made five deliberate breakages (for example an example 10 days away, or an unknown restaurant) and each one was caught. It also checked the examples on a real running server. |
+| What I changed and why | No code changes. I picked the small option because the required slices were still open and the assignment says a front end is an optional extra. |
 | Outcome | Accepted. Committed |
 
 ## Entry 20: Final README and design.md update
 | Field | Entry |
 |---|---|
-| Entry # / date | 21 / Oct 30, 2026 |
+| Entry # / date | 20 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
 | Slice | Documentation: `README.md` and `docs/design.md` updated to match the final code |
-| Prompt | Asked Claude to document the finished feature in the README using the real implementation and tests, then to update `design.md` so the components, interfaces, diagram, ADR and risks match the code. |
-| What the AI produced | A README with setup, the scheduled-order endpoints, request and response examples captured from the running code, status rules and implementation notes. An updated `design.md` with the real function names, a new sequence diagram checked in the Mermaid renderer, an "Update after implementation" note on ADR-001, and a limitations section. |
-| What I verified | Read both documents against the code. Claude checked that every AC number is between 1 and 19, every function and error name exists in `src/`, and the README's curl example works against a running server. |
-| What I changed and why | Nothing |
+| Prompt | Asked Claude to write the README from the real code and tests, then update `design.md` so the components, interfaces, diagram, ADR and risks match the code. |
+| What the AI produced | A README with setup, the scheduled-order endpoints, request and response examples taken from the running app, the status rules and implementation notes. An updated `design.md` with the real function names, a new sequence diagram checked in the Mermaid renderer, an "Update after implementation" note on ADR-001 and a limitations section. |
+| What I verified | Read both documents against the code. Claude checked that every AC number is between 1 and 19, that every function and error name exists in `src/`, and that the README's curl example works on a running server. |
+| What I changed and why | Nothing. |
 | Outcome | Accepted. Committed |
 
-## Entry 21: Customer web page (optional stretch goal)
+## Entry 21: Customer web page (optional extra)
 | Field | Entry |
 |---|---|
 | Entry # / date | 21 / Oct 30, 2026 |
 | Tool, model, mode | Claude (claude.ai, agent session with repository access), Claude Sonnet 5.5 |
-| Slice | Optional stretch goal: a customer-facing web page served by the app (no change to the API) |
-| Prompt | Asked for a DoorDash or Uber Eats style page where a customer can browse restaurants, add items to a cart and schedule an order, instead of using the API docs page. Chose to finish the required slices first. Later asked for an address popup, then told Claude to scrap it. |
-| What the AI produced | `src/minidash/web.py` (serves the page at `/`) and `src/minidash/static/index.html`, `app.css` and `app.js`: restaurant list, menus, cart, a Deliver now or Schedule choice with a date and time picker, an order status screen that refreshes itself, and a cancel button for scheduled orders. Text from the server is added to the page as plain text, never as HTML. Also 7 tests in `tests/test_web_ui.py` and README and `design.md` updates. The existing API was not changed. |
-| What I verified | Ran the full suite (157 passed) and used the page in my browser: restaurants, menu, cart, scheduling an order and cancelling it. Claude also ran the whole customer journey in a real browser against a fake server clock (scheduling, automatic release, cancel, error messages, a phone-sized screen). That run found three bugs in the AI's own code, which it fixed before I used the page: the cart printed `[object HTMLDivElement]`, the top bar overflowed on a phone, and the "View cart" bar showed on an empty cart. |
-| What I changed and why | No changes to the AI's code. I fixed my own setup problems: my first copy of the files was incomplete (a missing `web.py`, `docs_page.py` and `index.html` gave a 404, and a file saved as `index (1).html` gave a 500 error until I renamed it), and my old `minidash.db` had no `scheduled_delivery_time` column, so I deleted it and restarted (the no-migration decision from Entry 6). |
-| Outcome | Accepted |
+| Slice | Optional extra: a customer web page served by the app (no change to the API) |
+| Prompt | Asked for a DoorDash or Uber Eats style page where a customer can look at restaurants, add items to a cart and schedule an order, instead of using the API docs page. Chose to finish the required slices first. Later I asked for an address popup, then told Claude to scrap it. |
+| What the AI produced | `src/minidash/web.py` (serves the page at `/`) and `static/index.html`, `app.css` and `app.js`: restaurant list, menus, cart, a Deliver now or Schedule choice with a date and time picker, an order screen that refreshes itself, and a cancel button for scheduled orders. Text from the server is added as plain text, never as HTML. Also 7 tests in `tests/test_web_ui.py` and README and `design.md` updates. The API did not change. |
+| What I verified | Ran the full suite (157 passed) and used the page in my browser: restaurants, menu, cart, scheduling and cancelling an order. Claude also ran the whole customer journey in a real browser with a fake server clock (scheduling, automatic release, cancel, error messages, a phone-sized screen). That run found three bugs in the AI's own code, and it fixed them before I used the page: the cart printed `[object HTMLDivElement]`, the top bar overflowed on a phone, and the "View cart" bar showed on an empty cart. |
+| What I changed and why | No changes to the AI's code. I fixed my own setup problems. My first copy of the files was incomplete (missing `web.py`, `docs_page.py` and `index.html` gave a 404, and a file saved as `index (1).html` gave a 500 error until I renamed it). My old `minidash.db` had no `scheduled_delivery_time` column, so I deleted it and restarted (the no-migration decision from Entry 6). I rejected the address popup and kept the simpler page. |
+| Outcome | Accepted, except the address popup, which I rejected (nothing from it is in the repo). Committed after aa9543f (hash to add). Known limits: the page is checked by hand and by Claude's scripted run, not by browser tests in the repo, and restaurant hours are read as UTC. |

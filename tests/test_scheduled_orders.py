@@ -5,7 +5,6 @@ ADDRESS = "123 Main St"
 # The fake clock starts at 2026-10-30 12:00 UTC. Restaurant 1 (Luigi's) is open
 # 11:00-22:00, read as UTC.
 
-
 def place(client, menu, **extra):
     body = {
         "restaurant_id": 1,

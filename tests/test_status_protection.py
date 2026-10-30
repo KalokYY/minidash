@@ -77,26 +77,22 @@ def test_ordinary_status_changes_still_work(client, place_order, target):
     assert response.json() == {**order, "status": target}
     assert get(client, order["id"])["status"] == target
 
-
 def test_ordinary_orders_can_move_through_several_statuses(client, place_order):
     order = place_order()
 
     for status in ["PREPARING", "READY", "PICKED_UP", "DELIVERED"]:
         assert patch(client, order["id"], status).json()["status"] == status
 
-
 def test_unknown_order_is_still_a_404_even_for_a_protected_status(client):
     response = patch(client, 999, "CANCELLED")
 
     assert response.status_code == 404
-
 
 def test_unknown_status_value_is_still_rejected_as_invalid(client, place_order):
     order = place_order()
 
     assert patch(client, order["id"], "FLYING").status_code == 422
     assert get(client, order["id"]) == order
-
 
 # ---- the cancel endpoint is untouched --------------------------------------
 

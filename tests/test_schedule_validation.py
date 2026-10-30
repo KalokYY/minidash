@@ -13,14 +13,11 @@ ALWAYS_OPEN = {"opens_at": "00:00", "closes_at": "23:59"}
 # Same hours as Luigi's Pizzeria in the seed data.
 LUIGIS = {"opens_at": "11:00", "closes_at": "22:00"}
 
-
 def iso(dt):
     return dt.isoformat()
 
-
 def check(restaurant, text, now=NOW):
     return services.validate_scheduled_delivery(restaurant, text, now)
-
 
 def code_of(restaurant, text, now=NOW):
     with pytest.raises(ApiError) as caught:
@@ -41,20 +38,17 @@ def test_exactly_7_days_ahead_is_accepted():
 
     assert check(ALWAYS_OPEN, iso(delivery)) == delivery
 
-
 # ---- AC-4: too soon --------------------------------------------------------
 
 @pytest.mark.parametrize("lead", [timedelta(seconds=1), timedelta(minutes=30), timedelta(minutes=44, seconds=59)])
 def test_less_than_45_minutes_ahead_is_too_soon(lead):
     assert code_of(ALWAYS_OPEN, iso(NOW + lead)) == "SCHEDULE_TOO_SOON"
 
-
 # ---- AC-5: too far ---------------------------------------------------------
 
 @pytest.mark.parametrize("lead", [timedelta(days=7, seconds=1), timedelta(days=30)])
 def test_more_than_7_days_ahead_is_too_far(lead):
     assert code_of(ALWAYS_OPEN, iso(NOW + lead)) == "SCHEDULE_TOO_FAR"
-
 
 # ---- AC-3: invalid ---------------------------------------------------------
 
@@ -87,7 +81,6 @@ def test_non_utc_offset_is_normalised_to_the_same_instant_in_utc():
     assert result == datetime(2026, 10, 31, 18, 0, tzinfo=timezone.utc)
     assert result.utcoffset() == timedelta(0)
 
-
 # ---- AC-7: opening hours (read as UTC) -------------------------------------
 
 @pytest.mark.parametrize("hhmm", ["11:00", "11:01", "15:30", "21:59", "22:00"])
@@ -110,7 +103,6 @@ def test_opening_hours_are_checked_against_the_utc_time_of_day():
 def test_a_few_seconds_after_closing_time_is_closed():
     assert code_of(LUIGIS, "2026-10-31T22:00:01+00:00") == "RESTAURANT_CLOSED"
 
-
 # ---- AC-6: priority when several checks fail -------------------------------
 
 def test_invalid_beats_too_soon():
@@ -122,13 +114,11 @@ def test_invalid_beats_closed():
     # In the past and at 03:00 UTC, when Luigi's is closed.
     assert code_of(LUIGIS, "2026-10-30T03:00:00+00:00") == "SCHEDULE_INVALID"
 
-
 def test_too_soon_beats_closed():
     # Only 30 minutes ahead (too soon), and this restaurant is closed at 12:30 UTC.
     closed_at_noon = {"opens_at": "18:00", "closes_at": "22:00"}
 
     assert code_of(closed_at_noon, "2026-10-30T12:30:00+00:00") == "SCHEDULE_TOO_SOON"
-
 
 def test_too_far_beats_closed():
     # 8 days ahead at 03:00 UTC, when Luigi's is closed.

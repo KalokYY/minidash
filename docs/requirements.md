@@ -4,7 +4,6 @@
 Customers can place an order now for delivery at a later time. A scheduled order is validated against a lead-time window (45 minutes to 7 days) and the restaurant's opening hours, held in SCHEDULED status, released to the restaurant 30 minutes before delivery, and cancellable until release. All time-dependent logic reads from an injected clock.
 
 **Meanings used below**
-
 - "now" means the current time from the injected clock.
 - Timestamps must include a timezone offset and are compared as instants (UTC). Restaurant hours (`opens_at`, `closes_at`, `HH:MM` text) are interpreted as UTC time-of-day, which is a known simplification (see Out of Scope).
 - "The release process" is whatever mechanism moves due orders from SCHEDULED to PLACED. How it's triggered is a design decision (see `design.md`).
@@ -16,7 +15,6 @@ Customers can place an order now for delivery at a later time. A scheduled order
 - **User Story 4:** As a customer, I want an error message when my requested time is invalid, so that I can fix it without guessing what went wrong.
 
 ## 3. Acceptance Criteria (EARS)
-
 ### Scheduling window and validation
 - **AC-1:** WHEN a customer places an order with a `scheduled_delivery_time` exactly 45 minutes after now and the restaurant is open at that time, THE SYSTEM SHALL accept the order and set its status to SCHEDULED.
 - **AC-2:** WHEN a customer places an order with a `scheduled_delivery_time` exactly 7 days after now and the restaurant is open at that time, THE SYSTEM SHALL accept the order and set its status to SCHEDULED.

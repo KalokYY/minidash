@@ -1,6 +1,5 @@
 """The /docs page is Swagger UI with our own settings and CSS. Only its look changes."""
 
-
 def docs_html(client):
     response = client.get("/docs")
     assert response.status_code == 200

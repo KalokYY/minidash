@@ -14,7 +14,7 @@ This feature lets a customer schedule an order for delivery between 45 minutes a
 | clock.py | `SystemClock`: its `now()` returns the current UTC time. The fake clock used in tests lives in tests/conftest.py, so production code carries no test-only class. | AC-19 |
 | errors.py | `ApiError` carries a code, a message and an HTTP status, with one small function per error (schedule_invalid, schedule_too_soon, schedule_too_far, restaurant_closed, order_not_cancellable, status_change_not_allowed). | AC-3 to 7, AC-15, AC-17 |
 
-Changed for presentation only, with no acceptance criterion: `docs_page.py` and the example bodies in `main.py` change how the /docs page looks and what it pre-fills. They do not change any endpoint. `web.py` and the files in `static/` add a customer web page (the assignment's optional stretch goal) at `/`. It uses only the existing endpoints, adds no API and no acceptance criterion, and the server still enforces every rule.
+Not part of the acceptance criteria: `docs_page.py`, `web.py` and `static/` only add the styled /docs page and the optional customer web page. They add no endpoints.
 
 ## 3. Data Changes
 - New column on `orders`: scheduled_delivery_time, stored as text in ISO 8601 UTC (the result of `datetime.isoformat()` on the UTC value, for example `2026-11-03T18:00:00+00:00`). It can be empty because normal (non-scheduled) orders have no future delivery time and must keep the baseline behaviour of going straight to PLACED (AC-9, AC-18). Times are compared as parsed datetimes, never as text, so the stored format cannot change the result.

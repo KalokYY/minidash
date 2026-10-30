@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 
 from minidash.main import create_app
 
-
 class FakeClock:
     """A clock whose "now" only changes when the test says so."""
 
@@ -19,11 +18,9 @@ class FakeClock:
         """Move time forward, e.g. clock.advance(minutes=45)."""
         self._now += timedelta(**kwargs)
 
-
 @pytest.fixture
 def clock():
     return FakeClock(datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc))
-
 
 @pytest.fixture
 def client(tmp_path, clock):
@@ -31,12 +28,10 @@ def client(tmp_path, clock):
     app = create_app(str(tmp_path / "test.db"), clock=clock, release_interval_seconds=None)
     return TestClient(app)
 
-
 @pytest.fixture
 def first_restaurant_menu(client):
     """Menu items of restaurant 1, fetched through the API."""
     return client.get("/restaurants/1/menu").json()
-
 
 @pytest.fixture
 def place_order(client, first_restaurant_menu):
@@ -45,7 +40,6 @@ def place_order(client, first_restaurant_menu):
     Extra keyword arguments (for example scheduled_delivery_time) are added to
     the request body.
     """
-
     def place(**extra):
         body = {
             "restaurant_id": 1,

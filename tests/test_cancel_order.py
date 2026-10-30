@@ -7,7 +7,6 @@ NOT_CANCELLABLE_MESSAGE = (
     "restaurant or was cancelled already."
 )
 
-
 def place(client, menu, **extra):
     body = {
         "restaurant_id": 1,
@@ -19,7 +18,6 @@ def place(client, menu, **extra):
     assert response.status_code == 201
     return response.json()
 
-
 @pytest.fixture
 def scheduled_order(client, first_restaurant_menu):
     return place(client, first_restaurant_menu, scheduled_delivery_time=SCHEDULED_FOR)
@@ -27,7 +25,6 @@ def scheduled_order(client, first_restaurant_menu):
 
 def cancel(client, order_id):
     return client.post(f"/orders/{order_id}/cancel")
-
 
 # ---- AC-13: cancelling a scheduled order -----------------------------------
 
@@ -38,18 +35,15 @@ def test_cancelling_a_scheduled_order_returns_it_as_cancelled(client, scheduled_
     assert response.json()["id"] == scheduled_order["id"]
     assert response.json()["status"] == "CANCELLED"
 
-
 def test_order_is_still_cancelled_when_fetched_afterwards(client, scheduled_order):
     cancel(client, scheduled_order["id"])
 
     assert client.get(f"/orders/{scheduled_order['id']}").json()["status"] == "CANCELLED"
 
-
 def test_cancelling_changes_only_the_status(client, scheduled_order):
     response = cancel(client, scheduled_order["id"])
 
     assert response.json() == {**scheduled_order, "status": "CANCELLED"}
-
 
 def test_cancelling_one_order_leaves_other_orders_alone(client, first_restaurant_menu):
     first = place(client, first_restaurant_menu, scheduled_delivery_time=SCHEDULED_FOR)
@@ -59,13 +53,11 @@ def test_cancelling_one_order_leaves_other_orders_alone(client, first_restaurant
 
     assert client.get(f"/orders/{second['id']}").json() == second
 
-
 # ---- AC-15: orders that cannot be cancelled --------------------------------
 
 def assert_not_cancellable(response):
     assert response.status_code == 409
     assert response.json() == {"code": "ORDER_NOT_CANCELLABLE", "message": NOT_CANCELLABLE_MESSAGE}
-
 
 def test_a_regular_placed_order_cannot_be_cancelled_and_is_unchanged(client, first_restaurant_menu):
     placed = place(client, first_restaurant_menu)
@@ -73,7 +65,6 @@ def test_a_regular_placed_order_cannot_be_cancelled_and_is_unchanged(client, fir
     assert_not_cancellable(cancel(client, placed["id"]))
 
     assert client.get(f"/orders/{placed['id']}").json() == placed
-
 
 @pytest.mark.parametrize("status", ["PREPARING", "READY", "PICKED_UP", "DELIVERED"])
 def test_an_order_already_sent_to_the_restaurant_cannot_be_cancelled(client, first_restaurant_menu, status):
@@ -86,7 +77,6 @@ def test_an_order_already_sent_to_the_restaurant_cannot_be_cancelled(client, fir
     assert client.get(f"/orders/{placed['id']}").json() == before
     assert before["status"] == status
 
-
 def test_an_already_cancelled_order_cannot_be_cancelled_again(client, scheduled_order):
     assert cancel(client, scheduled_order["id"]).status_code == 200
     cancelled = client.get(f"/orders/{scheduled_order['id']}").json()
@@ -95,7 +85,6 @@ def test_an_already_cancelled_order_cannot_be_cancelled_again(client, scheduled_
 
     assert client.get(f"/orders/{scheduled_order['id']}").json() == cancelled
     assert cancelled["status"] == "CANCELLED"
-
 
 # ---- AC-16: unknown order ---------------------------------------------------
 
