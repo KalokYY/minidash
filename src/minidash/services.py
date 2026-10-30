@@ -20,6 +20,7 @@ from minidash.errors import (
 
 MIN_SCHEDULE_LEAD = timedelta(minutes=45)
 MAX_SCHEDULE_LEAD = timedelta(days=7)
+RELEASE_LEAD = timedelta(minutes=30)
 
 VALID_STATUSES = (
     "SCHEDULED", "PLACED", "PREPARING", "READY", "PICKED_UP", "DELIVERED", "CANCELLED"
@@ -174,3 +175,23 @@ def cancel_order(conn, order_id):
     if not repository.transition_order_status(conn, order_id, "SCHEDULED", "CANCELLED"):
         raise order_not_cancellable()
     return get_order(conn, order_id)
+
+
+def release_due_orders(conn, now):
+    """Move SCHEDULED orders to PLACED once their release time has arrived.
+
+    An order is due when `now` (from the injected clock) is at or after 30
+    minutes before its delivery time (AC-10, AC-11). Each order is changed with
+    a conditional update that only succeeds while it is still SCHEDULED, so an
+    order that was cancelled or already released in the meantime is left alone
+    (AC-12, AC-14) and running this again does nothing more.
+
+    Return the ids of the orders released by this call.
+    """
+    released = []
+    for row in repository.list_scheduled_orders(conn):
+        delivery = datetime.fromisoformat(row["scheduled_delivery_time"])
+        if now >= delivery - RELEASE_LEAD:
+            if repository.transition_order_status(conn, row["id"], "SCHEDULED", "PLACED"):
+                released.append(row["id"])
+    return released

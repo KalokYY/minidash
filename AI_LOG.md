@@ -186,3 +186,16 @@ Course: CSCI-665 Software Engineering, MiniDash Assignment (Track A: Scheduled O
 | What I verified | Reviewed the code changes and ran the full test suite: 113 passed. Claude performed seven mutation checks, and each caused at least one test to fail. I also performed a mutation check myself by temporarily removing `SCHEDULED` from `PROTECTED_STATUSES` in `services.py`. The tests failed as expected because scheduled orders were no longer protected. I restored the original code and ran `pytest` again: all 113 tests passed. |
 | What I changed and why | No manual code changes. The `STATUS_CHANGE_NOT_ALLOWED` error had to be added because it did not exist in the code before this slice. `SCHEDULED` also had to be added as a recognized status to return the required error instead of the default 422 validation response. |
 | Outcome | Accepted. All 113 tests passed. The implementation is ready for the next slice. |
+
+## Entry 16: Implementing Slice 8 — Releasing Scheduled Orders
+
+| Field | Entry |
+|---|---|
+| Date | October 30, 2026 |
+| Tool | Claude agent session, Sonnet 5.5 |
+| Task | Implement Slice 8 from `docs/tasks.md`: release scheduled orders 30 minutes before their scheduled delivery time (AC-10, AC-11, AC-12, AC-14, AC-19). |
+| Prompt | Asked Claude to implement the scheduled-order release function according to the requirements and design documents, use the injected clock, prevent duplicate releases, add tests, and verify the implementation without starting Slice 9. |
+| What AI produced | Added `list_scheduled_orders()` in `repository.py` to retrieve scheduled orders with a delivery time. Added `RELEASE_LEAD` and `release_due_orders(conn, now)` in `services.py`. Added 10 tests in `tests/test_release.py` and one repository test in `tests/test_repository.py`. The release function changes due orders from SCHEDULED to PLACED using the existing conditional status update. |
+| What I verified | Extracted the updated files into the project and ran the full test suite myself: 124 passed, 0 failed. Claude also performed nine mutation checks, and each was caught by the tests. I performed an additional mutation check myself by changing the release threshold from 30 minutes to 29 minutes in `services.py`. This caused 3 tests to fail, as expected (3 failed, 121 passed). I restored the original 30-minute threshold and reran the full test suite. |
+| What changed | No manual code changes. The implementation checks whether an order has reached its release time (30 minutes before delivery) and only updates orders that are still SCHEDULED. The conditional repository update prevents cancelled or already-transitioned orders from being released. |
+| Outcome | Accepted for review. All 124 tests passed. Slice 8 is implemented locally. No commit or push has been made yet. |

@@ -88,3 +88,28 @@ def test_transition_leaves_the_order_alone_when_status_does_not_match(tmp_path):
         assert repository.get_order(conn, placed)["status"] == "PLACED"
     finally:
         conn.close()
+
+
+
+def test_list_scheduled_orders_returns_only_orders_still_scheduled(tmp_path):
+    db_path = str(tmp_path / "test.db")
+    init_db(db_path)
+    conn = connect(db_path)
+    try:
+        def add(status, scheduled):
+            return repository.insert_order(
+                conn, 1, status, 1000, "123 Main St", "2026-10-30T12:00:00+00:00", [],
+                scheduled_delivery_time=scheduled,
+            )
+
+        wanted = add("SCHEDULED", "2026-10-30T18:00:00+00:00")
+        add("PLACED", None)
+        add("PLACED", "2026-10-30T19:00:00+00:00")
+        add("CANCELLED", "2026-10-30T20:00:00+00:00")
+        add("SCHEDULED", None)
+
+        assert repository.list_scheduled_orders(conn) == [
+            {"id": wanted, "scheduled_delivery_time": "2026-10-30T18:00:00+00:00"}
+        ]
+    finally:
+        conn.close()

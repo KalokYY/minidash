@@ -8,14 +8,11 @@ NOT_ALLOWED = {
 }
 ORDINARY_STATUSES = ["PLACED", "PREPARING", "READY", "PICKED_UP", "DELIVERED"]
 
-
 def patch(client, order_id, status):
     return client.patch(f"/orders/{order_id}/status", json={"status": status})
 
-
 def get(client, order_id):
     return client.get(f"/orders/{order_id}").json()
-
 
 def assert_rejected_and_unchanged(client, order, status):
     response = patch(client, order["id"], status)
@@ -23,7 +20,6 @@ def assert_rejected_and_unchanged(client, order, status):
     assert response.status_code == 409
     assert response.json() == NOT_ALLOWED
     assert get(client, order["id"]) == order
-
 
 @pytest.fixture
 def scheduled(place_order):
@@ -34,7 +30,6 @@ def scheduled(place_order):
 def cancelled(client, scheduled):
     assert client.post(f"/orders/{scheduled['id']}/cancel").status_code == 200
     return get(client, scheduled["id"])
-
 
 # ---- changes TO a protected status -----------------------------------------
 
@@ -56,14 +51,11 @@ def test_an_ordinary_order_cannot_be_cancelled_through_the_status_endpoint(clien
 def test_a_scheduled_order_cannot_be_changed_to_another_status(client, scheduled, target):
     assert_rejected_and_unchanged(client, scheduled, target)
 
-
 def test_a_scheduled_order_cannot_be_changed_to_scheduled_again(client, scheduled):
     assert_rejected_and_unchanged(client, scheduled, "SCHEDULED")
 
-
 def test_a_scheduled_order_cannot_be_cancelled_through_the_status_endpoint(client, scheduled):
     assert_rejected_and_unchanged(client, scheduled, "CANCELLED")
-
 
 # ---- changes FROM CANCELLED -------------------------------------------------
 
@@ -72,7 +64,6 @@ def test_a_cancelled_order_cannot_be_changed_to_any_status(client, cancelled, ta
     assert cancelled["status"] == "CANCELLED"
 
     assert_rejected_and_unchanged(client, cancelled, target)
-
 
 # ---- ordinary behaviour is unchanged ---------------------------------------
 

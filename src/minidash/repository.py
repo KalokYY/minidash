@@ -107,3 +107,17 @@ def transition_order_status(conn, order_id, expected_status, new_status):
     )
     conn.commit()
     return cur.rowcount > 0
+
+
+def list_scheduled_orders(conn):
+    """Return id and scheduled_delivery_time of every order still SCHEDULED.
+
+    Orders in any other status (PLACED, CANCELLED, ...) are never returned, so
+    they can never be picked up for release.
+    """
+    rows = conn.execute(
+        "SELECT id, scheduled_delivery_time FROM orders "
+        "WHERE status = 'SCHEDULED' AND scheduled_delivery_time IS NOT NULL "
+        "ORDER BY id"
+    ).fetchall()
+    return [dict(r) for r in rows]
